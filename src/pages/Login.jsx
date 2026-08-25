@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useAuth } from "../lib/auth.jsx";
-import { API_URL } from "../lib/api.js";
+import { useTheme } from "../lib/theme.js";
+import logoDark from "../assests/brand-logo-trimmed.webp";
+import logoLight from "../assests/brand-logo-light-trimmed.webp";
 import { Button } from "../ui/Button.jsx";
 import { Field, Input } from "../ui/form.jsx";
 import { Alert } from "../ui/feedback.jsx";
 
 export default function Login() {
   const { signIn } = useAuth();
+  const { theme } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
@@ -29,13 +32,19 @@ export default function Login() {
   return (
     <div className="grid min-h-screen place-items-center bg-canvas px-4 py-10">
       <div className="w-full max-w-[380px]">
-        <div className="mb-7 flex items-center gap-2.5">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-fg text-[14px] font-bold text-fg-invert">
-            i
-          </span>
+        <div className="mb-7 flex flex-col items-center gap-3 text-center">
+          {/* The wordmark is drawn in the brand's dark blue, which vanishes on
+              the dark ground — hence the two files. */}
+          <img
+            src={theme === "dark" ? logoLight : logoDark}
+            alt="Iwan"
+            className="h-14 w-auto object-contain"
+          />
           <div>
-            <h1 className="text-[16px] font-semibold leading-tight text-fg">Iwan CMS</h1>
-            <p className="text-[12.5px] text-fg-subtle">Content for iwan.community</p>
+            <h1 className="text-[15px] font-semibold leading-tight text-fg">
+              Content management
+            </h1>
+            <p className="text-[12.5px] text-fg-subtle">Sign in to edit iwan.community</p>
           </div>
         </div>
 
@@ -82,13 +91,6 @@ export default function Login() {
             Sign in
           </Button>
         </form>
-
-        {/* Which API this build talks to. On a laptop with dev and prod tabs
-            open, this is the difference between editing a draft and editing the
-            live site. */}
-        <p className="mt-4 text-center font-mono text-[11.5px] text-fg-subtle">
-          {API_URL}
-        </p>
       </div>
     </div>
   );

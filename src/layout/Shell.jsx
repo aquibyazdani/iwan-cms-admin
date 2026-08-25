@@ -16,7 +16,6 @@ import { RESOURCE_LIST } from "../resources.jsx";
 import { useAuth } from "../lib/auth.jsx";
 import { useTheme } from "../lib/theme.js";
 import { COUNTRIES } from "../lib/countries.js";
-import { Badge } from "../ui/Badge.jsx";
 import { cx } from "../lib/cx.js";
 /* ⚠ The TRIMMED copies, not the originals beside them. The source exports carry
    ~47% empty canvas, asymmetrically — so `h-8` on the original drew a 30px mark
@@ -239,11 +238,6 @@ function Brand({ theme, onClose }) {
       <span className="flex-1 text-[14px] font-bold uppercase tracking-[0.14em] text-fg-subtle">
         CMS
       </span>
-      {/* An environment badge, so nobody edits production believing it is dev.
-          Set VITE_ENV_LABEL per deployment. */}
-      {import.meta.env.VITE_ENV_LABEL && (
-        <Badge tone="warn">{import.meta.env.VITE_ENV_LABEL}</Badge>
-      )}
       {onClose && (
         <button
           type="button"
