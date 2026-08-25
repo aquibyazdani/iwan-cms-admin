@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iwan CMS</title>
+    <meta name="description" content="Content management for iwan.community" />
+    <!-- An internal tool: nothing here should ever appear in a search result. -->
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230a0a0a'/><text x='16' y='23' font-family='system-ui,sans-serif' font-size='18' font-weight='700' fill='white' text-anchor='middle'>i</text></svg>" />
+    <script>
+      /* Applied before first paint so a dark-mode session never flashes white.
+         Inline on purpose — a module import would run a frame too late. */
+      (function () {
+        try {
+          var saved = localStorage.getItem("iwan-cms.theme");
+          var dark =
+            saved === "dark" ||
+            (!saved && matchMedia("(prefers-color-scheme: dark)").matches);
+          if (dark) document.documentElement.setAttribute("data-theme", "dark");
+        } catch (e) {
+          /* private browsing throws rather than returning null — light it is */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

@@ -1,0 +1,217 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* The only stylesheet in the project — everything else is Tailwind utilities in
+   the component that uses them, the same rule the public site keeps. What lives
+   here is what a utility class cannot express: page-level base rules, and the
+   two reset details Tailwind's preflight deliberately leaves alone. */
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-[14px] leading-[1.55] text-fg antialiased;
+  }
+
+  /* One focus treatment for the whole app. Tailwind's preflight removes the UA
+     outline; without a replacement the tool is unusable from a keyboard, and
+     `:focus-visible` means a mouse click does not draw a ring. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent/50 ring-offset-1 ring-offset-canvas;
+  }
+
+  /* A date input's picker indicator is nearly invisible on a dark ground —
+     it is a UA-drawn glyph, so it has to be inverted rather than recoloured. */
+  [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+  [data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.6);
+  }
+
+  /* A scrollbar that does not repaint the panel it sits in. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--c-line-strong)) transparent;
+  }
+}
+
+/* The rich-text editing surface.
+
+   Hand-written against the design tokens rather than pulled in from
+   @tailwindcss/typography: the tokens already flip under [data-theme="dark"],
+   so this is theme-aware for free, where the plugin would need a `dark:` variant
+   wired up to a non-standard dark-mode selector.
+
+   ⚠ These are the EDITOR's styles, not the site's. The public site renders the
+   same HTML with its own type scale — how a post looks here is only a fair
+   approximation of how it will look published. */
+@layer components {
+  .rich-text {
+    @apply text-[15px] leading-[1.7] text-fg;
+    min-height: 320px;
+  }
+
+  .rich-text > * + * {
+    @apply mt-4;
+  }
+
+  .rich-text h2 {
+    @apply mt-7 text-[21px] font-semibold leading-[1.3] tracking-[-0.01em] text-fg;
+  }
+  .rich-text h3 {
+    @apply mt-6 text-[17px] font-semibold leading-[1.35] text-fg;
+  }
+  .rich-text h4 {
+    @apply mt-5 text-[15px] font-semibold leading-[1.4] text-fg;
+  }
+
+  /* The heading directly after another heading should not get the big top
+     margin — that gap is meant to separate a heading from the text above it. */
+  .rich-text h2 + h3,
+  .rich-text h3 + h4 {
+    @apply mt-3;
+  }
+
+  .rich-text ul {
+    @apply list-disc pl-6;
+  }
+  .rich-text ol {
+    @apply list-decimal pl-6;
+  }
+  .rich-text li {
+    @apply mt-1.5;
+  }
+  /* A nested list is part of its parent item, not a new block. */
+  .rich-text li > ul,
+  .rich-text li > ol {
+    @apply mt-1.5;
+  }
+
+  .rich-text blockquote {
+    @apply border-l-2 border-line-strong pl-4 italic text-fg-muted;
+  }
+
+  .rich-text a {
+    @apply text-accent underline underline-offset-2;
+  }
+
+  .rich-text code {
+    @apply rounded bg-muted px-1 py-0.5 font-mono text-[13px] text-fg;
+  }
+
+  .rich-text hr {
+    @apply border-0 border-t border-line;
+  }
+
+  .rich-text img {
+    @apply max-w-full rounded-lg border border-line;
+  }
+
+  /* A selected image needs to look selected — without this, deleting one is a
+     guess. ProseMirror adds this class to the selected node. */
+  .rich-text img.ProseMirror-selectednode {
+    @apply ring-2 ring-accent;
+  }
+
+  /* The placeholder, which is a CSS ::before on the first empty paragraph
+     rather than real text — so it can never be saved as content. */
+  .rich-text p.is-editor-empty:first-child::before {
+    @apply pointer-events-none float-left h-0 text-fg-subtle;
+    content: attr(data-placeholder);
+  }
+}
+
+/* ── the post preview ─────────────────────────────────────────────────────
+   How a post will read on the public site.
+
+   ⚠ These rules are a PORT of `.prose-post` in the public site's
+   src/index.css, down to the pixel values, and the two have to be changed
+   together. A preview that has quietly drifted from the site is worse than no
+   preview: it teaches an editor to trust something that is lying to them.
+
+   ⚠ It is fixed to the site's DEFAULT theme and always light. The site has four
+   brand themes and a dark admin, and following the admin's theme here would
+   show an editor a page no visitor will ever see. The colours come from the
+   `site-*` tokens in tailwind.config.js for the same reason.
+
+   Honest about its limits: the real page has DM Sans, the full-width layout and
+   the programme-toned hero. This is the body copy at the right size, weight and
+   rhythm — enough to judge the writing, not a pixel-perfect mock.
+------------------------------------------------------------------------- */
+@layer components {
+  .site-prose {
+    @apply font-site text-[17px] leading-[29px] text-site-ink-2;
+  }
+
+  .site-prose > * + * {
+    @apply mt-5;
+  }
+
+  .site-prose h2 {
+    @apply mb-3 mt-9 text-[22px] font-black uppercase leading-[1.25] tracking-[-0.01em] text-site-ink;
+  }
+  .site-prose h3 {
+    @apply mb-2 mt-8 text-[19px] font-extrabold leading-[1.3] tracking-[-0.01em] text-site-ink;
+  }
+  .site-prose h4 {
+    @apply mb-2 mt-6 text-[17px] font-bold leading-[1.35] text-site-ink;
+  }
+  .site-prose > :first-child {
+    @apply mt-0;
+  }
+
+  .site-prose ul {
+    @apply list-disc pl-6 marker:text-site-primary;
+  }
+  .site-prose ol {
+    @apply list-decimal pl-6 marker:font-bold marker:text-site-primary;
+  }
+  .site-prose li + li {
+    @apply mt-2;
+  }
+  .site-prose li > ul,
+  .site-prose li > ol {
+    @apply mt-2;
+  }
+
+  .site-prose blockquote {
+    @apply border-l-[3px] border-site-primary/40 pl-5 italic text-site-muted;
+  }
+
+  .site-prose a {
+    @apply font-semibold text-site-primary underline underline-offset-4;
+  }
+
+  .site-prose strong {
+    @apply font-bold text-site-ink;
+  }
+
+  .site-prose code {
+    @apply rounded bg-site-mist px-1.5 py-0.5 font-mono text-[15px];
+  }
+
+  .site-prose img {
+    @apply my-8 max-h-[520px] w-full rounded-2xl object-cover;
+  }
+
+  .site-prose figcaption {
+    @apply mt-2 text-center text-[14px] text-site-muted;
+  }
+
+  .site-prose hr {
+    @apply my-9 border-0 border-t border-site-line;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
