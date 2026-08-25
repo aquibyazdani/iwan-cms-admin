@@ -68,6 +68,10 @@ export default function Login() {
                 spellCheck={false}
                 autoFocus
                 required
+                /* Shows BOTH forms, since the field accepts either — a
+                   placeholder of just an email would quietly suggest the
+                   username does not work. */
+                placeholder="admin  or  you@iwan.community"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -81,6 +85,10 @@ export default function Login() {
                 type="password"
                 autoComplete="current-password"
                 required
+                /* ⚠ Dots, not the word "password" — a placeholder that reads
+                   like a value is the one people try to type over or, worse,
+                   mistake for a filled field. */
+                placeholder="••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
