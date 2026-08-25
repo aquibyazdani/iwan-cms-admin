@@ -71,7 +71,7 @@ export default function Login() {
                 /* Shows BOTH forms, since the field accepts either — a
                    placeholder of just an email would quietly suggest the
                    username does not work. */
-                placeholder="admin  or  you@iwan.community"
+                placeholder="username or email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
