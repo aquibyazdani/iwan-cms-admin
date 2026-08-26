@@ -33,9 +33,8 @@ const STATUS_TONE = {
 
 const STATUSES = ["new", "confirmed", "waitlist", "cancelled"];
 
-/* ⚠ An answer's shape follows its question's type — see the API's
-   models/Registration.js. Rendering them all as strings would print
-   "[object Object]" for a name and "true" for an agreement. */
+/* ⚠ An answer's shape follows its question's type. Rendering them all as
+   strings prints "[object Object]" for a name and "true" for an agreement. */
 function answerText(answer) {
   const { type, value } = answer;
   if (value === null || value === undefined || value === "") return null;
@@ -49,12 +48,9 @@ function answerText(answer) {
   return String(value);
 }
 
-/* What is known about the confirmation email for one registration.
-
-   ⚠ Three states, not two. Null means NO RECORD, which is not the same as
-   "never sent": every registration taken before the send was recorded has no
-   stamp, and claiming those people were never written to would send an
-   organiser off to re-contact a whole event. */
+/* ⚠ Three states, not two. Null means NO RECORD, not "never sent" —
+   registrations predating the stamp have none, and claiming those people were
+   never written to would send an organiser to re-contact a whole event. */
 function sentSummary(row) {
   if (!row.confirmationSentAt) {
     return row.confirmationSentCount
@@ -128,9 +124,8 @@ function Detail({ row, onClose, onChanged, onResend }) {
           ))}
         </div>
 
-        {/* ⚠ Every answer, with the question as it was ASKED — not as the form
-            reads today. The API snapshots the label with the answer precisely
-            so this cannot drift. */}
+        {/* ⚠ The question as it was ASKED, not as the form reads today — the
+            API snapshots the label so this cannot drift. */}
         <dl className="divide-y divide-line rounded-lg border border-line">
           {row.answers.map((a) => {
             const text = answerText(a);
@@ -152,9 +147,8 @@ function Detail({ row, onClose, onChanged, onResend }) {
           })}
         </dl>
 
-        {/* The confirmation email, and the one button that sends it again.
-            Placed here rather than only in the table because this is the view
-            that shows the address it would go to. */}
+        {/* Here as well as in the table, because this is the view that shows
+            the address it would go to. */}
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-canvas px-3.5 py-3">
           <div className="min-w-0">
             <p className="text-[13px] font-medium text-fg">{sentSummary(row)}</p>
@@ -190,14 +184,11 @@ function Detail({ row, onClose, onChanged, onResend }) {
   );
 }
 
-/* The question columns for the rows on screen — the union of every question
-   ANSWERED, in the order first seen.
+/* The union of every question ANSWERED, in the order first seen.
 
-   ⚠ Driven by the answers rather than by the event's current form, for the same
-   reason the answers snapshot their own label: a question deleted from the form
-   since still has answers, and those answers are the record. It also means
-   picking one event gives exactly that event's form as columns, while "All
-   events" gives every column with blanks where a form did not ask. */
+   ⚠ Driven by the answers rather than the event's current form: a since-deleted
+   question still has answers, and those answers are the record. It also means
+   one event gives exactly that event's form as columns. */
 function questionColumns(rows) {
   const seen = [];
   for (const row of rows) {
@@ -208,15 +199,10 @@ function questionColumns(rows) {
   return seen;
 }
 
-/* ⚠ Which questions are worth a column BY DEFAULT.
-
-   Short answers first — a radio, a number, a one-line text — because those read
-   in a narrow cell. A `textarea` is excluded however useful: a paragraph in a
-   table cell is a truncated string with a tooltip, which helps nobody scanning.
-   Name and email are already the "Who" column, so they would only repeat it.
-
-   Three, because that is what fits beside the fixed columns without scrolling
-   at a normal window width. */
+/* ⚠ Which questions get a column BY DEFAULT: short answers only, since those
+   read in a narrow cell. `textarea` is excluded however useful — a paragraph in
+   a table cell is a truncated string with a tooltip. Three is what fits beside
+   the fixed columns without scrolling. */
 const AUTO_COLUMN_TYPES = ["radio", "select", "number", "checkboxes", "date", "text"];
 const AUTO_COLUMN_LIMIT = 3;
 
@@ -231,10 +217,9 @@ const defaultColumns = (columns, rows) => {
     .map((c) => c.key);
 };
 
-/* Remembered per event, per browser. ⚠ localStorage rather than the URL: this
-   is a viewer's own preference for how they read the table, not part of what
-   the page is showing — putting it in the URL would mean sharing a filtered
-   link also imposed your column choice on the person you sent it to. */
+/* ⚠ localStorage rather than the URL: this is how a viewer reads the table,
+   not what the page shows. In the URL, sharing a filtered link would impose
+   your column choice on whoever you sent it to. */
 const STORE_KEY = "iwan-cms.reg-columns";
 
 const readStored = (event) => {
@@ -251,7 +236,7 @@ const writeStored = (event, keys) => {
     all[event || "*"] = keys;
     localStorage.setItem(STORE_KEY, JSON.stringify(all));
   } catch {
-    /* Private browsing throws. The choice holds for this view only. */
+    /* Private browsing throws. The choice holds for this view. */
   }
 };
 
@@ -285,21 +270,19 @@ export default function Registrations() {
   );
 
   const { data, error, loading, reload } = useFetch(path);
-  /* Which events have sign-ups at all — the filter's options, and a count
-     against each event's capacity. */
+  /* The filter's options, and a count against each event's capacity. */
   const events = useFetch("/api/admin/registrations/events");
 
   const items = data?.items ?? [];
-  /* Every question these rows answered — the full menu the picker offers. */
+  /* The full menu the picker offers. */
   const allColumns = useMemo(() => questionColumns(items), [items]);
 
-  /* Which of them are actually shown. Null until decided, so a stored choice
-     and the automatic default can be told apart from "the editor chose none". */
+  /* Null until decided, so a stored choice and the automatic default can be
+     told apart from "the editor chose none". */
   const [shown, setShown] = useState(null);
 
-  /* ⚠ Re-decided when the EVENT changes, not on every data change: a different
-     event has different questions, and carrying the last event's choice over
-     would show a table of empty columns. */
+  /* ⚠ Re-decided when the EVENT changes, not on every data change — carrying
+     the last event's choice over would show a table of empty columns. */
   useEffect(() => {
     if (allColumns.length === 0) return;
     const stored = readStored(event);
@@ -313,7 +296,7 @@ export default function Registrations() {
     writeStored(event, keys);
   };
 
-  /* In the table's own order, not the order they were ticked. */
+  /* In the table's order, not the order they were ticked. */
   const columns = useMemo(
     () => allColumns.filter((c) => (shown ?? []).includes(c.key)),
     [allColumns, shown]
@@ -332,14 +315,11 @@ export default function Registrations() {
     }
   };
 
-  /* ⚠ Confirmed first, every time, and deliberately not a one-click action.
-     Everything else on this screen moves a row about in a database and can be
-     put back; this one puts a message in a member of the public's inbox, where
-     nothing can be undone. The dialog names the recipient because the usual way
-     to mail the wrong person is to have opened the wrong row.
-
-     The row is re-read afterwards rather than patched in place, so the "sent"
-     line reflects what the server actually recorded. */
+  /* ⚠ Confirmed every time, deliberately not one click: everything else here
+     moves a database row and can be put back, this puts a message in a member
+     of the public's inbox. The dialog names the recipient because the usual way
+     to mail the wrong person is to have opened the wrong row. Re-read after, so
+     the "sent" line reflects what the server recorded. */
   const resend = async () => {
     setResending(true);
     try {
@@ -355,9 +335,9 @@ export default function Registrations() {
     }
   };
 
-  /* ⚠ The export is an authenticated GET, so it cannot be a plain <a href> —
-     the browser would send no Authorization header. Fetched with the token,
-     then handed to the browser as a blob. */
+  /* ⚠ An authenticated GET, so it cannot be a plain <a href> — the browser
+     sends no Authorization header. Fetched with the token, handed over as a
+     blob. */
   const [exporting, setExporting] = useState(false);
   const exportCsv = async () => {
     setExporting(true);
@@ -374,8 +354,7 @@ export default function Registrations() {
       a.href = url;
       a.download = event ? `registrations-${event}.csv` : "registrations.csv";
       a.click();
-      /* Revoked on the next tick — immediately would cancel the download in
-         Safari before it starts. */
+      /* ⚠ Next tick — revoking immediately cancels the download in Safari. */
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (err) {
       toast.error(err.message);
@@ -403,11 +382,10 @@ export default function Registrations() {
         }
         description="Everyone who has signed up, with every answer they gave. Pick an event to see its own questions as columns."
         actions={
-          /* ⚠ Exports exactly what the filters currently select — the same
-             query, so the spreadsheet matches the table rather than being a
-             dump of everything. The count says so, because "Export" alone
-             leaves an editor guessing whether their filter applied.
-             ⚠ A plain block comment, not {/* … *​/} — that form is only valid
+          /* ⚠ Exports what the filters select, not everything, and the count
+             says so — "Export" alone leaves an editor guessing whether their
+             filter applied.
+             ⚠ A plain block comment, not {/* … *​/}: that form is only valid
              among JSX children, never inside an expression attribute. */
           <>
             <ColumnPicker
@@ -493,8 +471,7 @@ export default function Registrations() {
           )}
         </Toolbar>
 
-        {/* When one event is picked, say how full it is — the number an
-            organiser actually wants. */}
+        {/* How full it is — the number an organiser actually wants. */}
         {current && (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-line bg-canvas px-4 py-2.5 text-[12.5px]">
             <span className="font-medium text-fg">{current.title}</span>
@@ -537,14 +514,12 @@ export default function Registrations() {
             <Table>
               <Thead>
                 <Th>Who</Th>
-                {/* ⚠ The event column is pointless when the list is already
-                    filtered to one event — that column would repeat the same
-                    title on every row, using width the answers need. */}
+                {/* Pointless when already filtered to one event: it would
+                    repeat one title down the column the answers need. */}
                 {!event && <Th className="w-[200px]">Event</Th>}
                 <Th className="w-[120px]">Status</Th>
-                {/* One line each. A question is a sentence, so a few of these
-                    push the table past the window — which is what the wrapper's
-                    horizontal scroll is for. */}
+                {/* One line each. A few of these push the table past the
+                    window, which is what the wrapper's scroll is for. */}
                 {columns.map((c) => (
                   <Th key={c.key} className="whitespace-nowrap">
                     {c.label}
@@ -600,8 +575,7 @@ export default function Registrations() {
                               text ? "text-fg" : "text-fg-subtle"
                             )}
                           >
-                            {/* A row whose form never asked this shows a dash,
-                                not the word "Not answered" — across events most
+                            {/* A dash, not "Not answered" — across events most
                                 cells would otherwise be that phrase. */}
                             {text ?? "—"}
                           </span>
@@ -618,9 +592,8 @@ export default function Registrations() {
                     </Td>
                     <Td className="text-right">
                       {/* ⚠ Disabled with a REASON in the tooltip rather than
-                          hidden. A button that is simply absent on some rows
-                          reads as a bug; one that says why it cannot be used
-                          answers the question instead. */}
+                          hidden — a button absent on some rows reads as a
+                          bug. */}
                       <button
                         type="button"
                         onClick={() => setPendingResend(row)}
@@ -679,8 +652,8 @@ export default function Registrations() {
         loading={resending}
         title="Resend the confirmation?"
         confirmLabel="Send it"
-        /* ⚠ Not `variant="danger"`. Sending cannot be undone, but it destroys
-           nothing, and a red button here would misdescribe the action. */
+        /* ⚠ Not `danger`: sending cannot be undone but destroys nothing, and
+           red would misdescribe it. */
         confirmVariant="primary"
         body={`A fresh confirmation for “${pendingResend?.eventTitle || pendingResend?.eventSlug}” will be emailed to ${pendingResend?.email}. It carries the event's details as they stand now, so a corrected date or venue goes out with it.`}
       />
