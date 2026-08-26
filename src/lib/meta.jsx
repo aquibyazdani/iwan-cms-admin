@@ -2,15 +2,13 @@ import { createContext, useContext, useMemo } from "react";
 import { useFetch } from "./useFetch.js";
 import { COUNTRY_CODES } from "./countries.js";
 
-/* The lists the API decides — which country codes it accepts, and which
-   programme paths content can be filed under — fetched once for the whole app
-   rather than per form.
+/* The lists the API decides, fetched once for the whole app rather than per
+   form.
 
-   ⚠ The programme paths are the public site's nav paths (`/iwan-women`), and
-   the site resolves them to labels through the ACTIVE COUNTRY's nav. Canada
-   does not run Iwan Women, so an item filed under it simply shows as unfiled
-   there rather than breaking — which is why this is a dropdown of known paths
-   and not free text: a typo would silently unfile an item in every country. */
+   ⚠ Programme paths are the site's nav paths, resolved to labels through the
+   ACTIVE COUNTRY's nav — so an item filed under a programme a country does not
+   run shows as unfiled rather than breaking. Hence a dropdown of known paths
+   and not free text: a typo would silently unfile an item everywhere. */
 
 const FALLBACK = {
   countries: COUNTRY_CODES,
@@ -23,12 +21,9 @@ const FALLBACK = {
   statuses: ["draft", "published"],
 };
 
-/* The filter value meaning "not tied to any programme".
-
-   ⚠ Must match `NO_PROGRAMME` in the API's src/routes/crud.js — it travels
-   across as a query parameter. A sentinel rather than an empty string, because
-   an empty query value cannot be told apart from an absent one, and it starts
-   with "__" so it can never collide with a real nav path (always "/…"). */
+/* ⚠ Must match `NO_PROGRAMME` in the API's src/routes/crud.js — it travels as
+   a query parameter. A sentinel because an empty query value cannot be told
+   apart from an absent one, and "__" cannot collide with a nav path. */
 export const NO_PROGRAMME = "__none";
 
 const MetaContext = createContext(FALLBACK);
@@ -36,9 +31,8 @@ const MetaContext = createContext(FALLBACK);
 export function MetaProvider({ children }) {
   const { data } = useFetch("/api/admin/meta");
 
-  /* The fallback is not a loading state — it is a full, usable answer. A form
-     that renders an empty programme dropdown for the half-second the request
-     takes is a form an editor can submit with the wrong value. */
+  /* A full usable answer, not a loading state — an empty dropdown for half a
+     second is a form an editor can submit with the wrong value. */
   const value = useMemo(() => ({ ...FALLBACK, ...(data ?? {}) }), [data]);
 
   return <MetaContext.Provider value={value}>{children}</MetaContext.Provider>;

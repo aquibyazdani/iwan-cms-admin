@@ -12,14 +12,10 @@ import { Loading, ErrorState } from "../ui/feedback.jsx";
 import { formatDay, todayKey } from "../lib/format.js";
 import { cx } from "../lib/cx.js";
 
-/* Deliberately NOT a count of rows in the database.
-
-   An editor's actual question is "what does a visitor in Canada see right
-   now?", and the answer to that excludes drafts, excludes anything outside its
-   promo window, and folds in every global item. Rather than reimplement those
-   rules here and risk them disagreeing with the API, this reads the same PUBLIC
-   endpoint the site itself calls, once per country. Two requests, and what it
-   shows is what the site shows by construction. */
+/* ⚠ Deliberately NOT a count of rows in the database. The question is "what
+   does a visitor in Canada see right now?", which excludes drafts and folds in
+   global items. Rather than reimplement those rules and risk disagreeing with
+   the API, this reads the same PUBLIC endpoint the site calls. */
 export default function Dashboard() {
   const { user } = useAuth();
 
@@ -75,12 +71,10 @@ export default function Dashboard() {
 }
 
 function CountryCard({ country }) {
-  /* The public API, not the admin one — no token, and the same URL the site
-     itself fetches. */
-  /* ⚠ `from` is the viewer's own calendar day, and it is what makes "next
-     event" mean anything. Without it the API returns every published event in
-     ascending date order, so page one is the OLDEST — and this panel would
-     confidently announce an event from last year. */
+  /* The public API, not the admin one — the same URL the site fetches. */
+  /* ⚠ `from` is the viewer's calendar day, and what makes "next event" mean
+     anything: without it page one is the OLDEST published event, and this panel
+     announces something from last year. */
   const { data, error, loading, reload } = useFetch(
     `/api/content?country=${country.code}&from=${todayKey()}`
   );
@@ -112,9 +106,8 @@ function CountryCard({ country }) {
       ) : (
         <PanelBody className="flex flex-col gap-4">
           <div className="grid grid-cols-3 gap-3">
-            {/* ⚠ `total`, not `items.length`. The bootstrap carries only the
-                first page of each list, so counting what it returned would
-                report "6" forever however much is published. */}
+            {/* ⚠ `total`, not `items.length` — the bootstrap carries only the
+                first page, so counting it reports "6" forever. */}
             <Stat label="Events" value={data.events.total} to="/events" />
             <Stat label="Posts" value={data.blogs.total} to="/blogs" />
             <Stat label="Episodes" value={data.podcast?.total ?? 0} to="/episodes" />
@@ -171,13 +164,9 @@ function Stat({ label, value, to }) {
   );
 }
 
-/* The soonest upcoming event, which the API has already worked out: the
-   request carries `?from=<today>` and the list comes back in ascending date
-   order, so the first item IS the next one.
-
-   ⚠ This used to filter and sort here, over the whole event list. With paging
-   there is no whole list to filter — doing it locally would only ever search
-   the first page. */
+/* The API has already worked this out: `?from=<today>` in ascending date order
+   means the first item IS the next one. ⚠ Filtering locally would only ever
+   search the first page. */
 function NextEvent({ events }) {
   const upcoming = events?.[0] ?? null;
 

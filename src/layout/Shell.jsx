@@ -17,11 +17,9 @@ import { useAuth } from "../lib/auth.jsx";
 import { useTheme } from "../lib/theme.js";
 import { COUNTRIES } from "../lib/countries.js";
 import { cx } from "../lib/cx.js";
-/* ⚠ The TRIMMED copies, not the originals beside them. The source exports carry
-   ~47% empty canvas, asymmetrically — so `h-8` on the original drew a 30px mark
-   inside a 48px box with the wordmark illegible. These are the same artwork with
-   the empty margin removed and scaled to 420px, which is 3x what the sidebar
-   shows. The originals are kept as the masters. */
+/* ⚠ The TRIMMED copies, not the originals beside them: the source exports carry
+   ~47% empty canvas, so `h-8` drew a 30px mark in a 48px box with the wordmark
+   illegible. The originals are kept as the masters. */
 import logoDark from "../assests/brand-logo-trimmed.webp";
 import logoLight from "../assests/brand-logo-light-trimmed.webp";
 
@@ -35,16 +33,15 @@ const NAV_ITEM = cx(
 const NAV_IDLE = "text-fg-muted hover:bg-muted hover:text-fg";
 const NAV_ACTIVE = "bg-muted text-fg";
 
-/* The frame every signed-in screen renders inside: a fixed sidebar at `lg` and
-   up, a slide-over drawer below it. */
+/* The frame every signed-in screen renders inside. */
 export default function Shell() {
   const { user, signOut, isAdmin } = useAuth();
   const { theme, toggle } = useTheme();
   const [drawer, setDrawer] = useState(false);
   const location = useLocation();
 
-  /* A route change closes the drawer. Without this, tapping a link on a phone
-     navigates behind a drawer that stays open over the new page. */
+  /* Without this, tapping a link on a phone navigates behind a drawer that
+     stays open over the new page. */
   useEffect(() => setDrawer(false), [location.pathname]);
 
   const nav = (
@@ -172,14 +169,12 @@ export default function Shell() {
 
   return (
     <div className="min-h-screen bg-canvas">
-      {/* ── sidebar, lg and up ── */}
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-[248px] flex-col border-r border-line bg-surface lg:flex">
         <Brand theme={theme} />
         {nav}
         {footer}
       </aside>
 
-      {/* ── drawer, below lg ── */}
       {drawer && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div
@@ -196,7 +191,6 @@ export default function Shell() {
       )}
 
       <div className="lg:pl-[248px]">
-        {/* ── top bar, below lg ── */}
         <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-line bg-surface/95 px-4 py-3 backdrop-blur lg:hidden">
           <button
             type="button"
@@ -217,15 +211,14 @@ export default function Shell() {
   );
 }
 
-/* ⚠ `theme` is passed in rather than read with `useTheme()` here. That hook owns
-   its own state and writes localStorage; calling it a second time would create a
-   second source of truth for the same setting. Shell already has it. */
+/* ⚠ `theme` is passed in rather than read with `useTheme()` — that hook owns
+   state and writes localStorage, so a second call is a second source of
+   truth. */
 function Brand({ theme, onClose }) {
   return (
     <div className="flex items-baseline gap-2.5 border-b border-line px-4 py-3.5">
-      {/* The wordmark is drawn in the brand's dark blue, which disappears on the
-          dark ground — hence the two files. `object-contain` because the export
-          carries its own padding and a `cover` crop would clip the arch. */}
+      {/* Dark blue, so it disappears on the dark ground — hence two files.
+          `object-contain`, or a `cover` crop clips the arch. */}
       <img
         src={theme === "dark" ? logoLight : logoDark}
         alt="Iwan"
@@ -233,8 +226,7 @@ function Brand({ theme, onClose }) {
       />
 
       {/* ⚠ The wordmark says "iwan.community", which is the SITE. This label is
-          what stops someone believing they are looking at the public site — the
-          two are one click apart and one of them edits the other. */}
+          what stops someone believing they are looking at it. */}
       <span className="flex-1 text-[14px] font-bold uppercase tracking-[0.14em] text-fg-subtle">
         CMS
       </span>

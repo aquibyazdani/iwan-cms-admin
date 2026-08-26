@@ -1,18 +1,14 @@
-/* The admin's design system, in one file — the same discipline the public site
-   keeps (`no hex code may appear anywhere in src/`), for the same reason: a
-   colour written inline is a colour that cannot be themed.
+/* The admin's design system, in one file — same discipline as the public site
+   (no hex code anywhere in src/), because a colour written inline cannot be
+   themed.
 
-   The look is Vercel's Geist: a near-monochrome surface, hairline borders doing
-   the work shadows would otherwise do, small radii, one blue for anything
-   actionable and one red for anything destructive. It is a tool for editors,
-   not a brand surface — the Iwan palette lives on the public site, and using it
-   here would only make the two easy to confuse.
+   The look is Vercel's Geist: near-monochrome, hairline borders instead of
+   shadows, small radii, one blue for actionable and one red for destructive.
+   ⚠ A tool for editors, not a brand surface — the Iwan palette stays on the
+   public site, or the two become easy to confuse.
 
-   Every colour is declared as `rgb(var(--x) / <alpha-value>)` so that
-   `bg-surface`, `text-fg/60` and friends all work AND recolour under
-   `[data-theme="dark"]`. That is the same convention as the public site's
-   tailwind.config.js, deliberately, so moving between the two repos does not
-   mean learning a second system. */
+   Every colour is `rgb(var(--x) / <alpha-value>)` so `text-fg/60` works AND
+   recolours under `[data-theme="dark"]`. */
 
 const rgb = (name) => `rgb(var(${name}) / <alpha-value>)`;
 
@@ -23,7 +19,6 @@ export default {
   theme: {
     extend: {
       colors: {
-        /* surfaces, back to front */
         canvas: rgb("--c-canvas"),
         surface: rgb("--c-surface"),
         raised: rgb("--c-raised"),
@@ -32,13 +27,11 @@ export default {
         line: rgb("--c-line"),
         "line-strong": rgb("--c-line-strong"),
 
-        /* text */
         fg: rgb("--c-fg"),
         "fg-muted": rgb("--c-fg-muted"),
         "fg-subtle": rgb("--c-fg-subtle"),
         "fg-invert": rgb("--c-fg-invert"),
 
-        /* the one blue anything actionable uses */
         accent: rgb("--c-accent"),
         "accent-hover": rgb("--c-accent-hover"),
         "accent-soft": rgb("--c-accent-soft"),
@@ -51,19 +44,14 @@ export default {
         "danger-hover": rgb("--c-danger-hover"),
         "danger-soft": rgb("--c-danger-soft"),
 
-        /* ── the PUBLIC SITE's palette, mirrored ────────────────────────────
-           Used by the post preview and nowhere else, so an editor sees roughly
-           what a visitor will rather than the admin's own greys.
+        /* The PUBLIC SITE's palette, mirrored for the post preview and nothing
+           else. Copied from the site's tailwind.config.js and updated alongside
+           it; deliberately not themeable, since the preview always shows the
+           default brand theme.
 
-           ⚠ These are copied from the site's tailwind.config.js and have to be
-           updated alongside it. They are deliberately NOT themeable here: the
-           site has four brand themes and this preview always shows the default
-           one, which is what the overwhelming majority of visitors see.
-
-           ⚠ They must never leak into the admin's own chrome — that is why they
-           are all prefixed `site-`. The admin looking like the site would make
-           the two easy to confuse at a glance, which is the last thing you want
-           when one of them edits the other. */
+           ⚠ They must never leak into the admin's own chrome — hence the `site-`
+           prefix. The admin looking like the site would make the two easy to
+           confuse, which is the last thing you want when one edits the other. */
         "site-ink": "#0a1020",
         "site-ink-2": "#1a2233",
         "site-muted": "#5b6b80",
@@ -75,9 +63,7 @@ export default {
 
       fontFamily: {
         /* Geist if the machine has it, then the system stack. Nothing is
-           downloaded: an admin tool should not wait on a font CDN, and the
-           fallback is the same neutral grotesque on every platform this runs
-           on. */
+           downloaded — an admin tool should not wait on a font CDN. */
         sans: [
           "Geist",
           "Inter",
@@ -89,9 +75,8 @@ export default {
           "Arial",
           "sans-serif",
         ],
-        /* The public site sets DM Sans. It is not loaded here — the preview
-           falls back to the same neutral stack, so spacing and weight read
-           true even when the exact face does not. */
+        /* The site sets DM Sans; it is not loaded here, so the preview reads
+           true in spacing and weight if not in the exact face. */
         site: ['"DM Sans"', "Inter", "system-ui", "-apple-system", "sans-serif"],
         mono: [
           "Geist Mono",
@@ -103,8 +88,7 @@ export default {
         ],
       },
 
-      /* Geist's radii: 6px on controls, 8-12px on panels. Anything rounder
-         reads as consumer software rather than a tool. */
+      /* Geist's radii. Anything rounder reads as consumer software. */
       borderRadius: {
         DEFAULT: "6px",
         md: "6px",
@@ -113,8 +97,7 @@ export default {
       },
 
       boxShadow: {
-        /* Borders carry the structure; shadows only lift things that genuinely
-           float — a dropdown, a dialog, a toast. */
+        /* Borders carry the structure; shadows only lift what floats. */
         pop: "0 4px 12px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.04)",
         dialog: "0 16px 48px rgb(0 0 0 / 0.16), 0 2px 8px rgb(0 0 0 / 0.06)",
         focus: "0 0 0 3px rgb(var(--c-accent) / 0.25)",
@@ -140,8 +123,8 @@ export default {
   },
 
   plugins: [
-    /* The tokens themselves. A plugin rather than a stylesheet so that adding a
-       colour means editing one file, not two that can disagree. */
+    /* A plugin rather than a stylesheet, so adding a colour means editing one
+       file rather than two that can disagree. */
     ({ addBase }) =>
       addBase({
         ":root": {

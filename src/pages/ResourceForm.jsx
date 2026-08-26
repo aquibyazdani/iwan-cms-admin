@@ -18,8 +18,7 @@ import { SegmentedControl } from "../ui/form.jsx";
 import { cx } from "../lib/cx.js";
 
 /* One form for every content type, driven by the `sections` spec in
-   resources.jsx. Create and edit are the same screen — the only differences are
-   which request it sends and whether the slug follows the title. */
+   resources.jsx. Create and edit are the same screen. */
 export default function ResourceForm({ resourceKey }) {
   const { id } = useParams();
   const resource = RESOURCES[resourceKey];
@@ -35,20 +34,18 @@ export default function ResourceForm({ resourceKey }) {
   const [fieldErrors, setFieldErrors] = useState({});
   const [formError, setFormError] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  /* Which of Write / Preview the body section is showing. Kept here rather than
-     in the section so it survives a re-render of the form. */
+  /* Here rather than in the section, so it survives a re-render. */
   const [bodyView, setBodyView] = useState("write");
-  /* Compared against the current form to decide whether there is anything to
-     lose — which is what the "unsaved changes" guard below asks. */
+  /* What the "unsaved changes" guard below compares against. */
   const [saved, setSaved] = useState(null);
 
   const { data, error, loading } = useFetch(`/api/admin/${resource?.path}/${id}`, {
     enabled: Boolean(resource) && !isNew,
   });
 
-  /* A new document starts from the resource's own `empty()`, so every field is
-     present from the first render — a form that grows inputs as data arrives
-     reflows under the cursor. */
+  /* From the resource's `empty()`, so every field is present on the first
+     render — a form that grows inputs as data arrives reflows under the
+     cursor. */
   useEffect(() => {
     if (!resource) return;
     if (isNew) {
@@ -66,15 +63,13 @@ export default function ResourceForm({ resourceKey }) {
     [form, saved]
   );
 
-  /* The browser's own "leave site?" prompt. It only covers closing the tab or
-     following an external link — an in-app navigation is React Router's and is
+  /* Covers closing the tab and external links only; in-app navigation is
      handled by the guard on the back button below. */
   useEffect(() => {
     if (!dirty) return undefined;
     const warn = (e) => {
       e.preventDefault();
-      /* Required by older browsers; the message itself is ignored and each
-         browser shows its own wording. */
+      /* Required by older browsers; the message itself is ignored. */
       e.returnValue = "";
     };
     window.addEventListener("beforeunload", warn);
@@ -83,8 +78,8 @@ export default function ResourceForm({ resourceKey }) {
 
   const setValue = useCallback((name, value) => {
     setForm((prev) => ({ ...prev, [name]: value }));
-    /* Clear the server's complaint about a field as soon as it is touched —
-       leaving it there while the editor fixes it reads as "still wrong". */
+    /* Cleared as soon as the field is touched — leaving it there while the
+       editor fixes it reads as "still wrong". */
     setFieldErrors((prev) => {
       if (!(name in prev)) return prev;
       const next = { ...prev };
@@ -108,15 +103,14 @@ export default function ResourceForm({ resourceKey }) {
       setSaved(saved_);
       toast.success(`${resource.singular} saved`);
 
-      /* A newly created document gets a real id, so the URL has to become its
-         edit URL — otherwise a second save would create a duplicate. `replace`
-         so Back does not return to an empty create form. */
+      /* ⚠ The URL has to become the edit URL, or a second save creates a
+         duplicate. `replace`, so Back does not return to an empty form. */
       if (isNew) navigate(`/${resource.path}/${saved_.id}`, { replace: true });
     } catch (err) {
       const errors = err.fieldErrors ?? {};
       setFieldErrors(errors);
-      /* A field-level failure is shown against each field; anything else needs
-         a banner, or the form would appear to do nothing. */
+      /* Field failures show against their field; anything else needs a banner,
+         or the form appears to do nothing. */
       setFormError(Object.keys(errors).length ? null : err.message);
       if (Object.keys(errors).length) {
         toast.error("Some fields need fixing");
@@ -194,9 +188,8 @@ export default function ResourceForm({ resourceKey }) {
 
       <div className="flex flex-col gap-4 pb-24">
         {resource.sections.map((section) => {
-          /* ⚠ Only a section that owns the `html` field can be previewed —
-             there is nothing to render for "When" or "Publishing", and a toggle
-             that shows an empty page would be worse than no toggle. */
+          /* ⚠ Only the section owning `html` — a preview toggle on "When" would
+             show an empty page. */
           const previewable = section.fields.some((f) => f.kind === "html");
           const showPreview = previewable && bodyView === "preview";
 
@@ -223,10 +216,9 @@ export default function ResourceForm({ resourceKey }) {
                   <PostPreview post={form} />
                 ) : (
                   <>
-                    {/* A six-column grid so a field can be full, half or a third
-                  without each section inventing its own layout. It collapses to
-                  one column below `sm`, where three inputs in a row are 90px
-                  each and unusable. */}
+                    {/* Six columns, so a field can be full, half or a third without
+                  each section inventing a layout. One column below `sm`, where
+                  three in a row are 90px each. */}
                     <div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-6">
                       {section.fields.map((field) => (
                         <div
@@ -254,9 +246,8 @@ export default function ResourceForm({ resourceKey }) {
         })}
       </div>
 
-      {/* A save bar pinned to the bottom, so a long form never needs scrolling
-          back to the top to commit. It appears only when there is something to
-          save — a permanent bar would cover the last field for no reason. */}
+      {/* Pinned, so a long form never scrolls back to the top to commit. Only
+          when there is something to save, or it covers the last field. */}
       {dirty && (
         <div className="fixed inset-x-0 bottom-0 z-30 animate-in border-t border-line bg-surface/95 backdrop-blur">
           <div className="mx-auto flex max-w-[900px] items-center justify-between gap-4 px-6 py-3">

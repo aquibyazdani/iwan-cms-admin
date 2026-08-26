@@ -2,21 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { IconColumns3, IconCheck } from "@tabler/icons-react";
 import { cx } from "../lib/cx.js";
 
-/* Which of an event's questions appear as columns.
-
-   ⚠ It exists because "show every answer" does not scale: a twelve-question
-   form produces a 3,700px table in a 1,100px window, and scanning a list is the
-   one job a table is for. Everything remains available in the detail panel and
-   in the CSV — this only decides what is worth seeing at a glance, which is
-   event-specific: allergies for a shared meal, gear for a fishing trip. */
+/* Which of an event's questions appear as columns. "Show every answer" does not
+   scale — a twelve-question form is a 3,700px table in a 1,100px window — and
+   everything stays available in the detail panel and the CSV. */
 export function ColumnPicker({ columns, selected, onChange, label = "Columns" }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
-  /* Outside click and Escape, the same pair the nav dropdowns use.
-     ⚠ `mousedown` rather than `click`: a click listener fires after the
-     button's own handler, so choosing a column would immediately close the
-     panel and reopen it. */
+  /* ⚠ `mousedown` rather than `click`: a click listener fires after the
+     button's own handler, so choosing a column closes and reopens the
+     panel. */
   useEffect(() => {
     if (!open) return undefined;
     const onDown = (e) => {
@@ -84,7 +79,7 @@ export function ColumnPicker({ columns, selected, onChange, label = "Columns" })
             </button>
           </div>
 
-          {/* Capped height: a long form would otherwise run off the screen. */}
+          {/* Capped, or a long form runs off the screen. */}
           <div className="max-h-[320px] overflow-y-auto py-1">
             {columns.map((c) => {
               const on = selected.includes(c.key);

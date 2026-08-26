@@ -2,11 +2,9 @@ import { createContext, useCallback, useContext, useMemo, useRef, useState } fro
 import { IconCheck, IconX, IconAlertTriangle } from "@tabler/icons-react";
 import { cx } from "../lib/cx.js";
 
-/* Confirmation that something happened, without stealing focus.
-
-   Saving is the most common action in this tool and it happens without the
-   screen changing, so an editor needs to be told it worked. A dialog would
-   interrupt; a line of text under the button would be missed. */
+/* Confirmation without stealing focus. Saving is the most common action here
+   and changes nothing on screen, so an editor has to be told it worked — a
+   dialog would interrupt, a line under the button would be missed. */
 
 const ToastContext = createContext(null);
 
@@ -22,8 +20,8 @@ const DURATION = { success: 3000, warn: 5000, error: 7000 };
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
-  /* An incrementing id rather than a timestamp: two toasts raised in the same
-     millisecond would collide on a key and React would reuse the wrong node. */
+  /* ⚠ An incrementing id, not a timestamp — two toasts in the same millisecond
+     collide on a key and React reuses the wrong node. */
   const nextId = useRef(0);
 
   const dismiss = useCallback((id) => {
@@ -54,10 +52,8 @@ export function ToastProvider({ children }) {
     <ToastContext.Provider value={value}>
       {children}
 
-      {/* `aria-live="polite"` announces a toast after whatever the user is
-          doing, rather than interrupting them mid-sentence. The region stays
-          mounted and empty so a screen reader is already watching it — one
-          added later is not announced at all. */}
+      {/* ⚠ The region stays mounted and empty so a screen reader is already
+          watching it — one added later is not announced at all. */}
       <div
         aria-live="polite"
         aria-atomic="false"

@@ -16,8 +16,8 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  /* Seeded from the last sign-in rather than from a constant, so someone who
-     unticked it on a shared machine does not find it ticked again next time. */
+  /* Seeded from the last sign-in, so someone who unticked it on a shared
+     machine does not find it ticked again. */
   const [remember, setRemember] = useState(readRemember);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -28,8 +28,8 @@ export default function Login() {
     setError(null);
     try {
       await signIn(email, password, remember);
-      /* No navigate() — App renders the shell instead of this screen as soon as
-         `user` is set, and the router lands on whatever route was asked for. */
+      /* No navigate() — App swaps this screen for the shell as soon as `user`
+         is set, and the router lands on whatever was asked for. */
     } catch (err) {
       setError(err.message);
       setBusy(false);
@@ -40,8 +40,7 @@ export default function Login() {
     <div className="grid min-h-screen place-items-center bg-canvas px-4 py-10">
       <div className="w-full max-w-[380px]">
         <div className="mb-7 flex flex-col items-center gap-3 text-center">
-          {/* The wordmark is drawn in the brand's dark blue, which vanishes on
-              the dark ground — hence the two files. */}
+          {/* The wordmark is dark blue and vanishes on the dark ground. */}
           <img
             src={theme === "dark" ? logoLight : logoDark}
             alt="Iwan"
@@ -61,10 +60,9 @@ export default function Login() {
         >
           {error && <Alert>{error}</Alert>}
 
-          {/* ⚠ `type="text"`, not `type="email"`. An account can sign in with a
-              username as well as an email address, and the browser's own email
-              validation would block "admin2026" before the form ever
-              submitted. */}
+          {/* ⚠ `type="text"`, not `type="email"`: an account can sign in with a
+              username, and the browser's email validation would block
+              "admin2026" before the form ever submitted. */}
           <Field label="Email or username">
             {(props) => (
               <Input
@@ -75,9 +73,8 @@ export default function Login() {
                 spellCheck={false}
                 autoFocus
                 required
-                /* Shows BOTH forms, since the field accepts either — a
-                   placeholder of just an email would quietly suggest the
-                   username does not work. */
+                /* BOTH, since the field accepts either — an email-only
+                   placeholder suggests the username does not work. */
                 placeholder="username or email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -93,9 +90,8 @@ export default function Login() {
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
-                  /* ⚠ Dots, not the word "password" — a placeholder that reads
-                     like a value is the one people try to type over or, worse,
-                     mistake for a filled field. */
+                  /* ⚠ A placeholder that reads like a value gets typed over,
+                     or mistaken for a filled field. */
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -105,13 +101,10 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((shown) => !shown)}
-                  /* ⚠ `type="button"`. A bare <button> inside a <form> defaults
-                     to type="submit", so peeking at the password would submit
-                     the form instead.
-
-                     The label names what the NEXT click does, because the icon
-                     alone says nothing to a screen reader; aria-pressed carries
-                     the current state. */
+                  /* ⚠ `type="button"`: a bare <button> in a <form> defaults to
+                     submit, so peeking at the password would submit it. The
+                     label names what the NEXT click does, since the icon says
+                     nothing to a screen reader; aria-pressed carries state. */
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   aria-pressed={showPassword}
                   className={cx(
@@ -129,20 +122,17 @@ export default function Login() {
             )}
           </Field>
 
-          {/* Inline rather than the ui/form Checkbox: that one is a bordered
-              card built for settings screens, and a card here would outweigh
-              the sign-in button directly beneath it. */}
+          {/* Inline rather than the ui/form Checkbox, which is a bordered card
+              for settings screens and would outweigh the button below it. */}
           <label className="flex cursor-pointer select-none items-center gap-2 text-[13px] text-fg-muted">
             <input
               type="checkbox"
               checked={remember}
               onChange={(e) => setRemember(e.target.checked)}
-              /* `accent-fg`, not the app's `accent` blue: this box sits
-                 directly above the black/white primary Sign in button, and on
-                 a screen whose only other colour is the wordmark, a lone blue
-                 tick reads as a stray. The brand navy and gold are NOT options
-                 here — tailwind.config.js keeps those behind the `site-`
-                 prefix precisely so the admin never dresses up as the site. */
+              /* `accent-fg`, not the app's `accent` blue — it sits above the
+                 black/white Sign in button, where a lone blue tick reads as a
+                 stray. ⚠ The brand navy and gold are NOT options: the `site-`
+                 prefix exists so the admin never dresses up as the site. */
               className="h-3.5 w-3.5 cursor-pointer accent-fg"
             />
             Remember me

@@ -3,27 +3,20 @@ import { IconCalendar, IconEyeOff } from "@tabler/icons-react";
 import { formatDay, programmeLabel } from "../lib/format.js";
 import { cx } from "../lib/cx.js";
 
-/* How a post will read on the public site: the dark programme-toned header with
-   the title, date and chip, then the photo, then the body at the site's own
-   type scale.
+/* How a post will read on the public site.
 
-   ⚠ An approximation, and nothing on screen says so — the caveat lives here
-   instead. The real page has DM Sans, a wider column, the programme's own mark
-   beside the title, and a header in the programme's colour rather than the
-   default blue. What this gets RIGHT is everything an editor is
-   actually judging: heading hierarchy, paragraph rhythm, list indents, where a
-   long title wraps, and whether the piece is too long. Styles are a port of the
-   site's `.prose-post` — see the note in index.css.
+   ⚠ An approximation, and nothing on screen says so — the caveat lives here.
+   The real page has DM Sans, a wider column and a programme-toned header. What
+   this gets RIGHT is what an editor is judging: heading hierarchy, paragraph
+   rhythm, list indents, where a long title wraps, and whether it is too long.
 
-   ⚠ It renders the same sanitised HTML the site does. That HTML has been
-   through the API's allowlist on write, which is what makes
-   `dangerouslySetInnerHTML` acceptable here as well. */
+   ⚠ The HTML has been through the API's allowlist on write, which is what makes
+   `dangerouslySetInnerHTML` acceptable here. */
 export function PostPreview({ post }) {
   const html = post.html ?? "";
 
-  /* An empty editor produces markup for one empty paragraph, not an empty
-     string — treating that as content would show a preview of nothing and
-     claim it was a post. */
+  /* An empty editor produces one empty paragraph, not "" — treating that as
+     content previews nothing and calls it a post. */
   const isEmpty = useMemo(
     () => !html.trim() || /^(<p>(\s|&nbsp;|<br\s*\/?>)*<\/p>\s*)+$/i.test(html.trim()),
     [html]
@@ -33,8 +26,7 @@ export function PostPreview({ post }) {
 
   return (
     <div className="overflow-hidden rounded-lg border border-line">
-      {/* The site's post header: a dark band carrying the date, the programme
-          chip and the title. */}
+      {/* The site's post header. */}
       <div className="bg-site-primary px-[clamp(1.25rem,4vw,2.5rem)] py-8">
         <div className="mb-3 flex flex-wrap items-center gap-3">
           {post.date ? (
@@ -42,9 +34,8 @@ export function PostPreview({ post }) {
               {formatDay(post.date)}
             </span>
           ) : (
-            /* The site simply omits the date line — so this says what will be
-               missing rather than showing a blank where an editor might expect
-               today's date. */
+            /* The site omits the date line, so this names what will be missing
+               rather than leaving a blank. */
             <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.1em] text-white/50">
               <IconCalendar size={13} stroke={2} />
               No date — this line will not appear
@@ -67,9 +58,8 @@ export function PostPreview({ post }) {
               src={post.img}
               alt=""
               className="mb-9 max-h-[420px] w-full rounded-2xl object-cover"
-              /* A broken image URL is a real editing mistake worth seeing, but
-                 the browser's own broken-image glyph in the middle of a preview
-                 reads as the preview being broken. */
+              /* A broken URL is worth seeing, but the browser's glyph mid-
+                 preview reads as the preview being broken. */
               onError={(e) => {
                 e.currentTarget.style.display = "none";
               }}

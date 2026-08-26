@@ -14,13 +14,10 @@ import {
 
 /* Every question type the builder can add.
 
-   ⚠ `type` must match FIELD_TYPES in the API's src/models/formField.js. A type
-   offered here that the API does not know is a save that fails after the editor
-   has done the work — the worst moment to find out.
-
-   `defaults` is what a newly-added question starts as. The point is that the
-   common case needs no configuring: adding "E-mail" should produce a usable
-   e-mail question, not an empty one to fill in. */
+   ⚠ `type` must match FIELD_TYPES in the API's src/models/formField.js — a type
+   the API does not know is a save that fails after the editor has done the
+   work. `defaults` is what a new question starts as, so adding "E-mail"
+   produces a usable question rather than an empty one. */
 export const FIELD_TYPES = [
   {
     type: "name",
@@ -110,8 +107,7 @@ export const FIELD_TYPES = [
     icon: IconShieldCheck,
     defaults: {
       label: "I agree to follow all safety rules",
-      /* ⚠ Always required — an agreement nobody has to give is not an
-         agreement. The builder hides the toggle for this type. */
+      /* ⚠ Always required — an agreement nobody has to give is not one. */
       required: true,
     },
   },
@@ -119,7 +115,7 @@ export const FIELD_TYPES = [
 
 export const CHOICE_TYPES = ["radio", "checkboxes", "select"];
 
-/* Types with a box to type into, and therefore a placeholder worth setting. */
+/* Types with a box, and therefore a placeholder worth setting. */
 export const PLACEHOLDER_TYPES = ["text", "textarea", "email", "phone", "number"];
 
 export const typeInfo = (type) =>
@@ -130,10 +126,9 @@ export const typeInfo = (type) =>
     defaults: {},
   };
 
-/* A question's key is what its ANSWERS will be stored against, so it is derived
-   from the label once and then left alone — see the note in the API's
-   models/formField.js. Underscores rather than hyphens: these read as data
-   column names more often than as URLs. */
+/* ⚠ The key is what ANSWERS are stored against, so it is derived from the label
+   once and then left alone — see the API's models/formField.js. Underscores,
+   because these read as column names rather than URLs. */
 export const keyFromLabel = (label = "") =>
   label
     .toLowerCase()
@@ -145,9 +140,8 @@ export const keyFromLabel = (label = "") =>
     .slice(0, 60)
     .replace(/_+$/g, "") || "question";
 
-/* Makes `key` unique against the keys already in the form, by adding _2, _3…
-   ⚠ Two questions sharing a key means one answer overwrites the other, which
-   the API refuses — but it should never get that far from the builder. */
+/* ⚠ Two questions sharing a key means one answer overwrites the other. The API
+   refuses it; this stops it reaching the API from the builder. */
 export const uniqueKey = (base, taken) => {
   if (!taken.includes(base)) return base;
   let n = 2;

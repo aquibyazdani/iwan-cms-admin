@@ -9,18 +9,14 @@ import {
 import { Button } from "./Button.jsx";
 import { cx } from "../lib/cx.js";
 
-/* An ordered list of rows an editor can add to, remove from and reorder — the
-   event agenda and the blog body are both this shape.
-
-   Reordering is buttons, not drag-and-drop. Drag would need a pointer, a
-   keyboard fallback and a touch fallback to be usable by everyone; two arrows
-   are all three at once, and these lists are short.
+/* An ordered list of rows an editor can add to, remove from and reorder.
+   Reordering is buttons: two arrows are the pointer, keyboard and touch case at
+   once, and these lists are short.
 
    ⚠ Rows are keyed by a STABLE id held alongside the value, not by index. Keyed
-   by index, removing the second of five rows makes React reuse row 3's DOM node
-   for row 2 — every input below the deletion keeps the previous row's focus,
-   selection and IME state, and the field an editor is typing into changes
-   underneath them. */
+   by index, removing the second of five rows makes React reuse row 3's node for
+   row 2, so every input below the deletion keeps the previous row's focus and
+   selection and changes underneath the editor. */
 export function Repeater({
   value = [],
   onChange,
@@ -30,14 +26,14 @@ export function Repeater({
   emptyLabel = "Nothing here yet.",
   max = 100,
 }) {
-  /* A WeakMap would be cleaner but the row objects are replaced on every
-     keystroke. An incrementing counter paired with a parallel id list survives
-     that, because ids move with the rows rather than with the objects. */
+  /* A WeakMap would be cleaner, but the row objects are replaced on every
+     keystroke — a parallel id list survives that, since ids move with the rows
+     rather than the objects. */
   const ids = useRef([]);
   const nextId = useRef(0);
 
-  /* Keep the id list the same length as the value list — rows can arrive from
-     the server, from an add, or from a remove. */
+  /* Rows arrive from the server, an add or a remove — keep the lists in
+     step. */
   while (ids.current.length < value.length) ids.current.push((nextId.current += 1));
   if (ids.current.length > value.length) ids.current.length = value.length;
 

@@ -2,34 +2,27 @@ import { useEffect, useRef, useState } from "react";
 import { cx } from "../lib/cx.js";
 import { Button } from "./Button.jsx";
 
-/* A real <table>, not a grid of divs — the rows are tabular data, and a table
-   is what gives a screen reader the column headers to read each cell against.
+/* A real <table>, not a grid of divs — a screen reader needs the column headers
+   to read each cell against.
 
-   ⚠ It is wrapped in its own `overflow-x-auto` container. A wide table must
-   scroll inside itself; letting it widen the page instead breaks the sidebar
-   layout and puts a horizontal scrollbar on the whole document.
+   ⚠ Wrapped in its own `overflow-x-auto` container: a wide table must scroll
+   inside itself rather than widening the page.
 
-   ⚠ That wrapper MUST be `relative`, and this is not cosmetic. `overflow`
-   does not clip an absolutely-positioned descendant whose containing block is
-   an ancestor of the scroll container — and Tailwind's `sr-only` is
-   `position: absolute`. The visually-hidden "Actions" label in the last header
-   cell therefore escaped the scroll box, landed at x≈750 in PAGE coordinates,
-   and gave the whole document 363px of horizontal scroll at 390px wide. The
-   table itself was innocent and scrolling correctly the entire time.
-   `relative` makes this element the containing block, so the clip applies. */
+   ⚠ That wrapper MUST be `relative`, and this is not cosmetic. `overflow` does
+   not clip an absolutely-positioned descendant whose containing block is an
+   ancestor of the scroll container — and `sr-only` is `position: absolute`. The
+   hidden "Actions" label escaped the scroll box and gave the whole document
+   363px of horizontal scroll at 390px wide. `relative` makes this the
+   containing block, so the clip applies. */
 export function Table({ children, className }) {
   const ref = useRef(null);
-  /* Which edges have content beyond them, so the fades below can show only on
-     the side there is actually more to see. */
+  /* Which edges have more beyond them, so a fade shows only where it is
+     true. */
   const [edges, setEdges] = useState({ left: false, right: false });
 
-  /* ⚠ A table that scrolls sideways but does not LOOK like it is a table whose
-     extra columns nobody finds. The fades are the affordance; without them the
-     rightmost visible column looks like the last one.
-
-     Recomputed on scroll, on resize, and whenever the children change — the
-     registrations table gains and loses columns as the picker is used, and a
-     stale measurement would leave a fade over nothing. */
+  /* ⚠ A table that scrolls sideways without looking like it is one whose extra
+     columns nobody finds. Recomputed on scroll, resize and child change — the
+     registrations table gains and loses columns as the picker is used. */
   useEffect(() => {
     const el = ref.current;
     if (!el) return undefined;
@@ -38,8 +31,8 @@ export function Table({ children, className }) {
       const { scrollLeft, scrollWidth, clientWidth } = el;
       setEdges({
         left: scrollLeft > 2,
-        /* -2 rather than 0: sub-pixel layout means a fully scrolled element is
-           often a fraction short, which would leave the fade on for ever. */
+        /* -2 rather than 0: sub-pixel layout leaves a fully scrolled element a
+           fraction short, and the fade on for ever. */
         right: scrollLeft < scrollWidth - clientWidth - 2,
       });
     };
@@ -47,7 +40,7 @@ export function Table({ children, className }) {
     measure();
     el.addEventListener("scroll", measure, { passive: true });
 
-    /* Catches both the window resizing and the table itself changing width. */
+    /* Catches the window resizing and the table changing width. */
     const observer = new ResizeObserver(measure);
     observer.observe(el);
     if (el.firstElementChild) observer.observe(el.firstElementChild);
@@ -68,9 +61,8 @@ export function Table({ children, className }) {
         </table>
       </div>
 
-      {/* ⚠ `pointer-events-none`, or these would swallow clicks on the first
-          and last columns — which is where the row link and the delete button
-          live. */}
+      {/* ⚠ `pointer-events-none`, or these swallow clicks on the first and
+          last columns — the row link and the delete button. */}
       {edges.left && (
         <span
           aria-hidden="true"
@@ -130,8 +122,8 @@ export function Td({ children, className, ...rest }) {
   );
 }
 
-/* Page N of M, with the range spelled out. Hidden entirely when everything fits
-   on one page — a pager showing "1–6 of 6" with both arrows dead is noise. */
+/* Hidden entirely when everything fits on one page — "1–6 of 6" with both
+   arrows dead is noise. */
 export function Pagination({ page, limit, total, onPage }) {
   const pages = Math.max(1, Math.ceil(total / limit));
   if (pages <= 1) return null;

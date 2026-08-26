@@ -1,10 +1,9 @@
 import { cx } from "../lib/cx.js";
 import { Button } from "./Button.jsx";
 
-/* The four states every list and form screen can be in besides "showing the
-   thing": loading, empty, failed, and a page-level error. Each is a component
-   rather than an inline block so they cannot be written five slightly different
-   ways across five screens. */
+/* The four states besides "showing the thing": loading, empty, failed, and a
+   page-level error. Components rather than inline blocks, so they cannot be
+   written five slightly different ways across five screens. */
 
 export function Spinner({ className }) {
   return (
@@ -34,9 +33,8 @@ export function Loading({ label = "Loading…", className }) {
   );
 }
 
-/* Rows of grey blocks standing in for a table while it loads. Used instead of a
-   spinner where the shape of what is coming is already known — the layout does
-   not jump when the data lands. */
+/* Instead of a spinner where the shape of what is coming is known, so the
+   layout does not jump when the data lands. */
 export function TableSkeleton({ rows = 5 }) {
   return (
     <div className="divide-y divide-line" aria-hidden="true">
@@ -68,8 +66,8 @@ export function EmptyState({ title, body, action, icon: Icon }) {
   );
 }
 
-/* A failed request, with the retry that goes with it. `onRetry` is optional
-   because not every failure is worth retrying — a 403 will not improve. */
+/* `onRetry` is optional — not every failure is worth retrying; a 403 will not
+   improve. */
 export function ErrorState({ error, onRetry }) {
   return (
     <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
@@ -86,9 +84,8 @@ export function ErrorState({ error, onRetry }) {
   );
 }
 
-/* An inline message above a form. Carries `role="alert"` so it is announced
-   when it appears — a submit that failed silently for a screen-reader user is
-   a submit that looks like it did nothing. */
+/* `role="alert"`, so a failed submit is announced rather than looking to a
+   screen-reader user like it did nothing. */
 export function Alert({ tone = "danger", title, children, className }) {
   const TONES = {
     danger: "border-danger/30 bg-danger-soft text-danger",

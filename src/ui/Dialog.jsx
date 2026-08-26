@@ -4,25 +4,18 @@ import { IconX } from "@tabler/icons-react";
 import { cx } from "../lib/cx.js";
 import { Button } from "./Button.jsx";
 
-/* A modal shell: backdrop, panel, Escape, a body scroll lock and initial focus.
-   Wrap feature content in it — same contract as the public site's Modal.
+/* A modal shell: backdrop, panel, Escape, body scroll lock, initial focus.
 
-   ⚠ Initial focus goes to the PANEL, not to the close button. The dialog still
-   receives focus, but landing it on Close draws a focus ring around the glyph
-   the moment the dialog opens, which reads as a background rather than a
-   focused control. */
+   ⚠ Initial focus goes to the PANEL, not the close button — landing it on Close
+   draws a ring around the glyph the moment the dialog opens. */
 export function Dialog({ open, onClose, title, description, children, footer, width }) {
   const panelRef = useRef(null);
 
-  /* ⚠ `onClose` is held in a ref rather than named as a dependency, and this is
-     the whole reason the dialog was unusable to type in.
-
-     A caller almost always passes an inline arrow or a function defined in its
-     own body, so `onClose` is a NEW value on every render. Depending on it made
-     this effect tear down and re-run on every keystroke — and re-running it
-     calls `panelRef.current.focus()`, which pulled focus out of the input mid
-     word. The effect now runs exactly when `open` changes, while the handler
-     stays current through the ref. */
+  /* ⚠ `onClose` is held in a ref rather than named as a dependency, and this
+     is the whole reason the dialog was unusable to type in: callers pass an
+     inline arrow, so it is a new value every render, and the effect re-ran on
+     every keystroke — calling `panelRef.current.focus()` and pulling focus out
+     of the input mid-word. */
   const onCloseRef = useRef(onClose);
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -36,9 +29,9 @@ export function Dialog({ open, onClose, title, description, children, footer, wi
     };
     document.addEventListener("keydown", onKey);
 
-    /* Locking the body is what stops the page behind scrolling under the
-       backdrop. The previous value is restored rather than assumed to be
-       "visible" — two dialogs and the second one would otherwise unlock. */
+    /* Stops the page scrolling under the backdrop. The previous value is
+       restored rather than assumed "visible", or the second of two dialogs
+       unlocks it. */
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
@@ -55,8 +48,8 @@ export function Dialog({ open, onClose, title, description, children, footer, wi
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* The backdrop is its own element so a click on it closes, while a click
-          inside the panel does not have to stopPropagation to survive. */}
+      {/* Its own element, so a click inside the panel does not need
+          stopPropagation to survive. */}
       <div
         className="absolute inset-0 animate-in bg-black/40 backdrop-blur-[2px]"
         onClick={onClose}
@@ -107,15 +100,12 @@ export function Dialog({ open, onClose, title, description, children, footer, wi
   );
 }
 
-/* Where this app asks "are you sure". `name` is echoed back so an editor can
-   see WHICH row they are about to act on — the most common way to do this to
-   the wrong thing is to have opened the wrong row's menu.
+/* Where this app asks "are you sure". `name` is echoed back because the usual
+   way to act on the wrong thing is to have opened the wrong row.
 
-   Deleting is the default because it was the first use, but it is not the only
-   one: `confirmVariant` exists for an action that is irreversible without being
-   destructive — resending a confirmation email puts something in a member of
-   the public's inbox and cannot be recalled, yet painting that button red would
-   tell an editor they are about to destroy something. */
+   Deleting is only the default: `confirmVariant` exists for an action that is
+   irreversible without being destructive, like resending an email, where a red
+   button would say something untrue about what is happening. */
 export function ConfirmDialog({
   open,
   onClose,

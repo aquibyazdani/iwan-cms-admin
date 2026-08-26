@@ -1,9 +1,7 @@
 import { cx } from "../lib/cx.js";
 
-/* Page furniture: the title block every screen opens with, and the bordered
-   panel most content sits in. Hairlines rather than shadows — in this design
-   system a shadow means "this floats above the page", so spending it on a
-   static panel would leave nothing to say it with. */
+/* Page furniture. Hairlines rather than shadows — a shadow here means "this
+   floats", so spending it on a static panel leaves nothing to say it with. */
 
 export function PageHeader({ title, description, actions, className }) {
   return (
@@ -63,8 +61,7 @@ export function PanelBody({ className, children }) {
   return <div className={cx("px-5 py-5", className)}>{children}</div>;
 }
 
-/* The filter bar above a list. `sticky` so the search and the country filter
-   stay reachable while scrolling a long table. */
+/* `sticky`, so the filters stay reachable down a long table. */
 export function Toolbar({ className, children }) {
   return (
     <div

@@ -13,23 +13,17 @@ import Users from "./pages/Users.jsx";
 import Registrations from "./pages/Registrations.jsx";
 import { RESOURCE_LIST } from "./resources.jsx";
 
-/* Four content types, one list screen and one form screen.
+/* Routes generated from RESOURCE_LIST rather than written out, for the same
+   reason routes/crud.js exists on the API side.
 
-   The routes are generated from RESOURCE_LIST rather than written out, for the
-   same reason routes/crud.js exists on the API side: the types differ in their
-   fields and in nothing else, so a fifth one should not mean four more lines
-   here that can be forgotten.
-
-   ⚠ Each resource gets its own LITERAL path (`/events`, `/blogs`, …) and the
-   resource is handed to the screen as a prop. A single "/:resource" route would
-   be shorter and wrong: it would also match /users and /podcast-show and render
-   a broken list for them. */
+   ⚠ Each resource gets its own LITERAL path. A single "/:resource" route would
+   be shorter and wrong — it would also match /users and /podcast-show and
+   render a broken list for them. */
 function Signed() {
   const { user, ready } = useAuth();
 
-  /* ⚠ `ready` is not the same as "no user". On the very first render the stored
-     token is still being checked, and rendering the sign-in screen during that
-     moment flashes it at someone who is already signed in. */
+  /* ⚠ `ready` is not "no user" — on the first render the stored token is still
+     being checked, and sign-in then flashes at someone already signed in. */
   if (!ready) return <Loading label="Signing in…" />;
   if (!user) return <Login />;
 
@@ -46,8 +40,7 @@ function Signed() {
             </Route>
           ))}
 
-          {/* ⚠ The old /registrations path is kept as a redirect: it was in the nav
-              for a while and may be bookmarked. */}
+          {/* The old path was in the nav for a while and may be bookmarked. */}
           <Route path="event-registrations" element={<Registrations />} />
           <Route
             path="registrations"
@@ -56,8 +49,7 @@ function Signed() {
           <Route path="podcast-show" element={<ShowSettings />} />
           <Route path="users" element={<Users />} />
 
-          {/* Anything else is a mistyped URL, not a page — there is nothing
-              useful to say about it, so it goes home. */}
+          {/* A mistyped URL, not a page — nothing useful to say, so home. */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

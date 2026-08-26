@@ -7,12 +7,9 @@ import { Field, Input, Textarea } from "../ui/form.jsx";
 import { PageHeader, Panel, PanelBody, PanelHeader } from "../ui/Page.jsx";
 import { ErrorState, Loading } from "../ui/feedback.jsx";
 
-/* The podcast show — the title, blurb and artwork above the episode grid.
-
-   A singleton, so this is a plain form rather than a list: there is one show,
-   and the API upserts it, which is why there is no "create the podcast" step to
-   go through first. Episodes are the part that varies by country and they live
-   under Podcast. */
+/* The podcast show. A singleton, so a plain form rather than a list — the API
+   upserts it, which is why there is no "create the podcast" step. Episodes are
+   the part that varies by country. */
 export default function ShowSettings() {
   const toast = useToast();
   const { data, error, loading } = useFetch("/api/admin/podcast/show");
@@ -96,9 +93,8 @@ export default function ShowSettings() {
             </Field>
 
             {form.cover && (
-              /* `contain` on a tinted ground, not `cover` — the artwork is a
-                 wide wordmark and a square crop cuts it in half, which is the
-                 same treatment the public site's player and cards use. */
+              /* `contain`, not `cover` — the artwork is a wide wordmark and a
+                 square crop cuts it in half. */
               <div className="grid aspect-[16/9] max-w-[280px] place-items-center overflow-hidden rounded-lg border border-line bg-muted px-6">
                 <img
                   src={form.cover}

@@ -18,13 +18,11 @@ import { cx } from "../lib/cx.js";
 
 const PER_PAGE = 25;
 
-/* One list screen for every content type — the columns, the labels and the
-   empty state all come from the resource's entry in resources.jsx.
+/* One list screen for every content type, driven by resources.jsx.
 
-   ⚠ The filters live in the URL, not in component state. That makes a filtered
-   list shareable and — the reason it actually matters — means the browser Back
-   button after opening a row returns to the list an editor was looking at
-   rather than to an unfiltered page one. */
+   ⚠ The filters live in the URL, not component state — which makes a filtered
+   list shareable and, more usefully, makes Back from an opened row return to
+   the list the editor was looking at rather than an unfiltered page one. */
 export default function ResourceList({ resourceKey }) {
   const resource = RESOURCES[resourceKey];
 
@@ -44,8 +42,8 @@ export default function ResourceList({ resourceKey }) {
     const next = new URLSearchParams(params);
     if (value) next.set(name, value);
     else next.delete(name);
-    /* Any filter change puts you back on page one — page 4 of a search that now
-       matches two rows is an empty screen with no obvious way out. */
+    /* Back to page one — page 4 of a search matching two rows is an empty
+       screen with no obvious way out. */
     if (name !== "page") next.delete("page");
     setParams(next, { replace: true });
   };
@@ -92,15 +90,13 @@ export default function ResourceList({ resourceKey }) {
         title={
           <span className="flex flex-wrap items-center gap-2.5">
             {resource.label}
-            {/* ⚠ Only once the first response has landed. Rendering "0" while
-                loading says something false, and it is the number an editor is
-                most likely to act on. */}
+            {/* ⚠ Only once the first response lands — "0" while loading is
+                false, and it is the number an editor acts on. */}
             {data && (
               <Badge tone="neutral" className="!text-[12px]">
                 {data.total}
-                {/* When a filter is on, the number is the number of MATCHES —
-                    saying so is the difference between "we lost your posts" and
-                    "the filter is doing its job". */}
+                {/* Saying "matching" is the difference between "we lost your
+                    posts" and "the filter is working". */}
                 {filtered && " matching"}
               </Badge>
             )}
@@ -146,8 +142,8 @@ export default function ResourceList({ resourceKey }) {
             ))}
           </Select>
 
-          {/* Only for the types that have a programme — a dropdown that can
-              never match anything is worse than no dropdown. */}
+          {/* Only for types with a programme — one that can never match is
+              worse than none. */}
           {resource.hasProgramme && (
             <Select
               value={programme}
@@ -161,8 +157,8 @@ export default function ResourceList({ resourceKey }) {
                   {p.label}
                 </option>
               ))}
-              {/* ⚠ A sentinel, not "" — an empty value is indistinguishable
-                  from "no filter" by the time it reaches the API. */}
+              {/* ⚠ A sentinel, not "" — empty is indistinguishable from "no
+                  filter" by the time it reaches the API. */}
               <option value={NO_PROGRAMME}>Open to all</option>
             </Select>
           )}
@@ -234,17 +230,15 @@ export default function ResourceList({ resourceKey }) {
                 {items.map((row) => (
                   <Tr
                     key={row.id}
-                    /* A draft is dimmed rather than badged alone — scanning a
-                       long list, the eye finds the faded rows before it reads
-                       any label. */
+                    /* Dimmed as well as badged — the eye finds faded rows
+                       before it reads a label. */
                     className={cx(row.status === "draft" && "bg-canvas/60")}
                   >
                     {resource.columns.map((col, i) => (
                       <Td key={col.header} className={cx(i === 0 && "max-w-[340px]")}>
                         {i === 0 ? (
-                          /* The whole first cell is the link — a bigger target
-                             than the title text alone, and it keeps the row's
-                             affordance in one obvious place. */
+                          /* The whole cell is the link — a bigger target than
+                             the title text alone. */
                           <Link
                             to={`/${resource.path}/${row.id}`}
                             className="block rounded transition-opacity hover:opacity-80"

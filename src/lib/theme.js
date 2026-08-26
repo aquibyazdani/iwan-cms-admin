@@ -4,10 +4,9 @@ const KEY = "iwan-cms.theme";
 
 /* Light or dark, remembered per browser.
 
-   ⚠ The FIRST application happens in index.html, in an inline script that runs
-   before the first paint — a module import would run a frame too late and a
-   dark-mode session would flash white on every load. This hook only handles
-   changing it afterwards, and reads back whatever that script decided. */
+   ⚠ The FIRST application happens in index.html, inline, before first paint — a
+   module import runs a frame too late and a dark session flashes white. This
+   hook only changes it afterwards. */
 const current = () =>
   document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
 
@@ -21,7 +20,7 @@ export function useTheme() {
     try {
       localStorage.setItem(KEY, theme);
     } catch {
-      /* Private browsing throws. The choice holds for this tab and no longer. */
+      /* Private browsing throws. The choice holds for this tab. */
     }
   }, [theme]);
 

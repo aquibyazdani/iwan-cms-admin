@@ -24,43 +24,38 @@ import {
 } from "@tabler/icons-react";
 import { cx } from "../lib/cx.js";
 
-/* The blog editor. TipTap (ProseMirror) because it is headless — the chrome is
-   ours, styled with the same design tokens as everything else, rather than an
-   editor theme fighting the admin's.
+/* The blog editor. TipTap because it is headless, so the chrome is ours and
+   uses the same design tokens as everything else.
 
-   ⚠ What comes out of here is HTML that will be rendered on the public site
-   with `dangerouslySetInnerHTML`. Nothing in this file is a security control:
-   the API sanitises on write (src/lib/html.js) and that is the only thing
-   standing between a pasted payload and a stored XSS. The toolbar limiting what
-   an editor can *insert* is a usability decision, not a safety one — a paste,
-   or a request sent by hand, bypasses it entirely.
+   ⚠ NOTHING IN THIS FILE IS A SECURITY CONTROL. The output is rendered on the
+   public site with `dangerouslySetInnerHTML`, and the API's sanitiser
+   (src/lib/html.js) is the only thing between a pasted payload and a stored
+   XSS. What the toolbar can insert is a usability decision — a paste or a
+   hand-sent request bypasses it entirely.
 
-   ⚠ No h1. The post's own title is the page's h1; a second one breaks the
-   document outline, and the API strips it anyway. */
+   ⚠ No h1: the post's title is the page's h1, and the API strips it anyway. */
 
-/* Matched to the API's allowlist in src/lib/html.js. If one gains a tag the
-   other has to, or an editor gets a button whose output is silently stripped on
-   save — which reads as the editor losing their work. */
+/* ⚠ Matched to the API's allowlist in src/lib/html.js. If one gains a tag the
+   other must, or an editor gets a button whose output is stripped on save. */
 const EXTENSIONS = [
   StarterKit.configure({
     heading: { levels: [2, 3, 4] },
-    /* The API allows <pre>, but a code block in a community blog post is far
-       more likely to be an accident than an intention. Inline `code` stays. */
+    /* The API allows <pre>, but a code block in a community post is likelier
+       an accident than an intention. Inline `code` stays. */
     codeBlock: false,
     link: {
       openOnClick: false,
       autolink: true,
       defaultProtocol: "https",
-      /* Mirrors what sanitize-html enforces server-side, so the preview here
-         matches what is stored. */
+      /* Mirrors the server-side rule, so the preview matches what is
+         stored. */
       protocols: ["http", "https", "mailto", "tel"],
       HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
     },
   }),
   Image.configure({
-    /* Base64 pasted straight into the document would put megabytes of image
-       into the post body and into every API response that carries it. Images
-       are URLs until there is somewhere to upload them to. */
+    /* Base64 would put megabytes of image into the post body and every API
+       response carrying it. Images stay URLs until there is an upload. */
     allowBase64: false,
     HTMLAttributes: { loading: "lazy" },
   }),
@@ -71,10 +66,9 @@ function ToolbarButton({ onClick, active, disabled, label, icon: Icon }) {
   return (
     <button
       type="button"
-      /* ⚠ `onMouseDown` with preventDefault, not onClick. A click moves focus to
-         the button first, which collapses the editor's selection — so "make
-         this bold" would apply to nothing. Preventing the default keeps the
-         caret and the selection exactly where they were. */
+      /* ⚠ `onMouseDown` with preventDefault, not onClick: a click moves focus
+         to the button first, collapsing the selection, so "make this bold"
+         would apply to nothing. */
       onMouseDown={(e) => {
         e.preventDefault();
         onClick();
@@ -108,12 +102,10 @@ export function RichText({ value, onChange, invalid }) {
     onUpdate: ({ editor: e }) => onChange(e.getHTML()),
   });
 
-  /* Keeps the editor in step when the value changes from OUTSIDE it — the form's
-     Discard button, or a save that returns the sanitised HTML.
-
-     ⚠ Guarded on the content actually differing. Without that, every keystroke
-     round-trips through the parent's state, comes back here, and resets the
-     document — which destroys the cursor position on every character typed. */
+  /* Keeps the editor in step when the value changes from OUTSIDE — Discard, or
+     a save returning sanitised HTML. ⚠ Guarded on the content actually
+     differing, or every keystroke round-trips through the parent and resets the
+     document, destroying the cursor position on each character. */
   useEffect(() => {
     if (!editor) return;
     const next = value ?? "";
@@ -129,9 +121,8 @@ export function RichText({ value, onChange, invalid }) {
     // eslint-disable-next-line no-alert
     const url = window.prompt("Link to:", previous);
 
-    /* Cancel leaves the document alone; clearing the box removes the link.
-       Those are different intentions and a single "falsy" check would conflate
-       them. */
+    /* Cancel leaves it alone; clearing the box removes the link. A falsy
+       check would conflate the two. */
     if (url === null) return;
     if (url === "") {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
@@ -153,9 +144,8 @@ export function RichText({ value, onChange, invalid }) {
 
   const can = editor.can().chain().focus();
 
-  /* Counted from the editor's plain text rather than by adding TipTap's
-     CharacterCount extension — one line against a whole extension, and the
-     document is re-read on each render anyway. */
+  /* From the plain text rather than TipTap's CharacterCount extension — one
+     line against a whole extension. */
   const words = editor.getText().trim().split(/\s+/).filter(Boolean).length;
 
   return (
@@ -165,8 +155,7 @@ export function RichText({ value, onChange, invalid }) {
         invalid ? "border-danger" : "border-line focus-within:border-accent"
       )}
     >
-      {/* `sticky` so the toolbar stays reachable in a long post rather than
-          scrolling away at the top of it. */}
+      {/* `sticky`, so a long post does not scroll the toolbar away. */}
       <div className="sticky top-0 z-[1] flex flex-wrap items-center gap-0.5 border-b border-line bg-canvas px-2 py-1.5">
         <ToolbarButton
           label="Bold"
@@ -268,18 +257,15 @@ export function RichText({ value, onChange, invalid }) {
         />
       </div>
 
-      {/* ⚠ A plain <div>, NOT a <button>, even though it has a mouse handler.
-          The editor is a contenteditable — wrapping it in a button nests
-          interactive content, and the browser then suppresses text selection
-          inside it, so a toolbar action like Bold has nothing to apply to. The
-          real control here is the contenteditable, which is already focusable
-          and already carries its own semantics; this element only widens the
-          click target to the padding around it. */}
+      {/* ⚠ A plain <div>, NOT a <button>, despite the mouse handler: the
+          editor is a contenteditable, and nesting it in a button suppresses
+          text selection, leaving Bold nothing to apply to. The contenteditable
+          is the real control; this only widens the click target. */}
       {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
       <div
         onMouseDown={(e) => {
-          /* Only when the padding itself is clicked — a click on the text must
-             fall through so the caret lands where it was aimed. */
+          /* Only the padding — a click on text must fall through so the caret
+             lands where it was aimed. */
           if (e.target === e.currentTarget) {
             e.preventDefault();
             editor.commands.focus("end");

@@ -24,16 +24,13 @@ import {
 
 /* The registration form builder.
 
-   Reordering works two ways on purpose. Dragging is what people reach for, and
-   the arrows are what make it usable from a keyboard, on a touch screen, and by
-   anyone for whom a precise drag is hard. Drag-and-drop alone would exclude all
-   three — it is the affordance, not the mechanism.
+   Reordering works two ways on purpose: dragging is what people reach for, the
+   arrows are what make it work from a keyboard, on a touch screen, and for
+   anyone who finds a precise drag hard.
 
-   ⚠ Rows are keyed by their `key`, which is unique within a form by
-   construction. Keying by index would make removing the second of five rows
-   reuse row 3's DOM node for row 2, so every input below the deletion keeps the
-   previous row's focus and cursor position — the same bug the Repeater's note
-   describes. */
+   ⚠ Rows are keyed by their `key`, not by index. Keying by index makes removing
+   the second of five rows reuse row 3's DOM node for row 2, so every input
+   below the deletion keeps the previous row's cursor position. */
 
 const ROW = cx(
   "rounded-lg border bg-surface transition-[border-color,box-shadow] duration-150"
@@ -62,9 +59,8 @@ function OptionList({ options, onChange }) {
           <button
             type="button"
             onClick={() => remove(i)}
-            /* ⚠ The API refuses a choice question with no options, so the last
-               one cannot be removed here — better to disable it than to let the
-               editor build something that fails on save. */
+            /* ⚠ The API refuses a choice with no options, so the last one is
+               disabled rather than allowed to fail on save. */
             disabled={options.length <= 1}
             aria-label={`Remove option ${i + 1}`}
             title={options.length <= 1 ? "A choice needs at least one option" : "Remove"}
@@ -106,15 +102,9 @@ function FieldRow({
   const set = (patch) => onChange({ ...field, ...patch });
 
   /* ⚠ The key follows the label only while it still LOOKS derived from it.
-
-     Deriving that from the values themselves, rather than from a "has the user
-     touched the key" flag, is what makes it survive a reload: the flag would
-     reset every time the form is reopened, and the key would start following
-     the label again on a question whose key someone had deliberately set.
-
-     So: rename "Question" to "T-shirt size" and the key follows, because it was
-     still `question`. Set the key to `size` by hand and it stops following,
-     because `size` is not what `keyFromLabel` would have produced. */
+     Deriving that from the values rather than a "user touched it" flag is what
+     makes it survive a reload — a flag resets on reopen, and the key would
+     start following the label again on a question someone had set by hand. */
   const setLabel = (label) => {
     const derived = keyFromLabel(field.label);
     const stillDerived =
@@ -134,8 +124,8 @@ function FieldRow({
       )}
     >
       <div className="flex items-start gap-2 p-2.5">
-        {/* The grip is the drag handle — dragging from anywhere else would make
-            selecting text inside an input start a drag instead. */}
+        {/* The grip is the handle, or selecting text in an input starts a
+            drag. */}
         <span
           data-drag-handle
           aria-hidden="true"
@@ -201,9 +191,9 @@ function FieldRow({
                   value={field.type}
                   onChange={(e) => {
                     const next = e.target.value;
-                    /* Changing type keeps the label and key — the question is
-                       the same question — but options only make sense for the
-                       types that have them. */
+                    /* Changing type keeps the label and key — it is the same
+                       question — but options only survive on types that have
+                       them. */
                     set({
                       type: next,
                       options: CHOICE_TYPES.includes(next)
@@ -263,9 +253,8 @@ function FieldRow({
                   onChange={(e) => set({ key: keyFromLabel(e.target.value) })}
                   className="h-8 font-mono text-[12.5px]"
                 />
-                {/* ⚠ Not decoration. Answers are filed under this, so changing
-                    it after registrations exist orphans every answer already
-                    collected. */}
+                {/* ⚠ Answers are filed under this, so changing it after
+                    registrations exist orphans every one collected. */}
                 <span className="text-[11.5px] text-fg-subtle">
                   What answers are stored under. Changing it later loses the link to
                   answers already collected.
@@ -323,9 +312,8 @@ export function FormBuilder({ value = [], onChange, error }) {
   const fields = value ?? [];
   const taken = fields.map((f) => f.key);
 
-  /* Native HTML5 drag rather than a library: this is one vertical list, and
-     dnd-kit or similar would be 30KB to move a row. The arrows cover every case
-     drag does not. */
+  /* Native HTML5 drag rather than a library — one vertical list is not worth
+     30KB, and the arrows cover what drag does not. */
   const [dragIndex, setDragIndex] = useState(null);
   const overIndex = useRef(null);
 
@@ -389,15 +377,14 @@ export function FormBuilder({ value = [], onChange, error }) {
               dragProps={{
                 draggable: true,
                 onDragStart: (e) => {
-                  /* ⚠ Only from the grip. Without this, selecting text in an
-                     input starts a drag and the row jumps instead. */
+                  /* ⚠ Only from the grip, or selecting text starts a drag. */
                   if (!e.target.closest?.("[data-drag-handle]")) {
                     e.preventDefault();
                     return;
                   }
                   setDragIndex(i);
                   e.dataTransfer.effectAllowed = "move";
-                  /* Firefox will not start a drag without data set. */
+                  /* Firefox will not drag without data set. */
                   e.dataTransfer.setData("text/plain", String(i));
                 },
                 onDragOver: (e) => {

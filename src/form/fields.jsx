@@ -7,12 +7,10 @@ import { FormBuilder } from "./FormBuilder.jsx";
 import { slugify, isValidSlug } from "../lib/slug.js";
 import { cx } from "../lib/cx.js";
 
-/* One renderer per field kind. ResourceForm walks a resource's section/field
-   spec and calls into this — which is why adding a content type is a config
-   entry rather than a new form component.
-
-   Every renderer takes the same four things: the field spec, the current value,
-   an onChange, and the error the API reported for that field (if any). */
+/* One renderer per field kind, called by ResourceForm as it walks a resource's
+   spec — which is why adding a content type is a config entry rather than a new
+   form component. Every renderer takes the spec, the value, an onChange and the
+   API's error for that field. */
 
 const WIDTHS = {
   full: "sm:col-span-6",
@@ -22,17 +20,13 @@ const WIDTHS = {
 
 export const widthClass = (width = "full") => WIDTHS[width] ?? WIDTHS.full;
 
-/* ── the slug, which is the one field with real behaviour ───────────────── */
+/* Follows the title while the document is NEW, stops once it is saved or
+   edited by hand.
 
-/* It follows the title while the document is NEW and stops the moment it is
-   saved or edited by hand.
-
-   ⚠ Changing a slug on a published document changes its public URL and breaks
-   every link to it, so it locks itself behind a deliberate "Edit" once the
-   document exists. For a promo it does something else again: the slug is the
-   key a visitor's dismissal is remembered under, so changing it re-shows the
-   promo to everyone. Neither should ever happen by accident from typing in the
-   title box. */
+   ⚠ Changing a slug changes a published URL and breaks every link to it; on a
+   promo it also re-shows the campaign to everyone who dismissed it. Neither
+   should happen by accident from typing in the title box, so it locks behind a
+   deliberate "Edit". */
 function SlugField({ field, value, onChange, error, form, isNew }) {
   const [unlocked, setUnlocked] = useState(false);
   const [touched, setTouched] = useState(false);
@@ -42,8 +36,8 @@ function SlugField({ field, value, onChange, error, form, isNew }) {
   useEffect(() => {
     if (!isNew || touched) return;
     onChange(slugify(source));
-    /* `onChange` is recreated per render by the parent; depending on it would
-       re-run this on every keystroke anywhere in the form. */
+    /* `onChange` is a new value every render, so depending on it re-runs this
+       on every keystroke anywhere in the form. */
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source, isNew, touched]);
 
@@ -71,8 +65,8 @@ function SlugField({ field, value, onChange, error, form, isNew }) {
             spellCheck={false}
             onChange={(e) => {
               setTouched(true);
-              /* Slugified on the way in rather than validated on the way out —
-                 an editor typing a space should see a hyphen, not a red line. */
+              /* Slugified on the way in — a typed space should become a
+                 hyphen, not a red line. */
               onChange(slugify(e.target.value));
             }}
             className="font-mono text-[13px]"
@@ -92,14 +86,9 @@ function SlugField({ field, value, onChange, error, form, isNew }) {
   );
 }
 
-/* ── running time ───────────────────────────────────────────────────────── */
-
-/* Stored as a number of seconds, typed as either "348" or "5:48".
-
-   It keeps its own text state rather than deriving the input's value from the
-   number on every render: mid-typing, "5:" is not a valid duration, and a
-   controlled input that rewrote it to "5:00" would make the field impossible to
-   type into. */
+/* Seconds, typed as "348" or "5:48". ⚠ Keeps its own text state rather than
+   deriving the value from the number each render: mid-typing "5:" is not a
+   valid duration, and rewriting it to "5:00" makes the field untypeable. */
 function DurationField({ field, value, onChange, error }) {
   const asText = (seconds) => {
     if (!Number.isFinite(seconds)) return "";
@@ -134,7 +123,7 @@ function DurationField({ field, value, onChange, error }) {
             setText(e.target.value);
             onChange(parse(e.target.value));
           }}
-          /* Tidy the display to canonical mm:ss once the field is left. */
+          /* Canonicalise to mm:ss once the field is left. */
           onBlur={() => setText(asText(parse(text)))}
           className="font-mono"
         />
@@ -143,8 +132,6 @@ function DurationField({ field, value, onChange, error }) {
   );
 }
 
-/* ── coordinates ────────────────────────────────────────────────────────── */
-
 function CoordsField({ field, value, onChange, error }) {
   const [lat, lng] = value ?? ["", ""];
 
@@ -152,8 +139,8 @@ function CoordsField({ field, value, onChange, error }) {
     const next = [...(value ?? ["", ""])];
     next[index] = raw === "" ? "" : Number(raw);
 
-    /* Both blank means "no coordinates" — null, not [NaN, NaN]. The site falls
-       back to searching the address text, which is the documented behaviour. */
+    /* Both blank is null, not [NaN, NaN] — the site then searches the address
+       text instead. */
     if (next[0] === "" && next[1] === "") return onChange(null);
     onChange(next);
   };
@@ -181,8 +168,6 @@ function CoordsField({ field, value, onChange, error }) {
     </Field>
   );
 }
-
-/* ── the repeatable ones ────────────────────────────────────────────────── */
 
 function AgendaField({ value, onChange, error }) {
   return (
@@ -292,8 +277,6 @@ function CtaField({ value, onChange, error }) {
   );
 }
 
-/* ── the renderer ───────────────────────────────────────────────────────── */
-
 export function renderField({
   field,
   value,
@@ -349,8 +332,8 @@ export function renderField({
               value={value ?? ""}
               placeholder={field.placeholder}
               onChange={(e) =>
-                /* Blank is null, not 0 — "no limit on places" and "nobody may
-                   come" are different things. */
+                /* Blank is null, not 0 — "no limit" and "nobody may come" are
+                   different things. */
                 onChange(e.target.value === "" ? null : Number(e.target.value))
               }
             />

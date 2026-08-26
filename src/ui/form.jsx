@@ -1,10 +1,10 @@
 import { useId } from "react";
 import { cx } from "../lib/cx.js";
 
-/* The form controls, and the wrapper that gives each one its label, hint and
-   error. Grouped in one file because they share the CONTROL class set and would
-   otherwise drift apart — a select that is a pixel taller than the input beside
-   it is the sort of thing nobody reports and everybody notices. */
+/* The form controls and the wrapper that labels them. One file because they
+   share the CONTROL class set and would otherwise drift — a select a pixel
+   taller than the input beside it is what nobody reports and everybody
+   notices. */
 
 const CONTROL = cx(
   "w-full rounded border bg-surface px-3 text-[14px] text-fg",
@@ -20,10 +20,10 @@ const TONE = {
 
 const tone = (invalid) => TONE[invalid ? "invalid" : "normal"];
 
-/* Label, control, hint and error in one stack, with the ids wired up so the
-   label points at the control and a screen reader reads the error with it.
-   `children` is a render function taking the props the control needs, which is
-   what keeps the wiring here instead of repeated at every call site. */
+/* Label, control, hint and error in one stack, with the ids wired so a screen
+   reader reads the error with the control. `children` is a render function
+   taking those props, which keeps the wiring here rather than at every call
+   site. */
 export function Field({ label, hint, error, required, className, children }) {
   const id = useId();
   const hintId = `${id}-hint`;
@@ -86,10 +86,9 @@ export function Select({ invalid, className, children, ...rest }) {
           CONTROL,
           tone(invalid),
           "h-9 cursor-pointer appearance-none pr-9",
-          /* ⚠ `bg-none` only clears background-IMAGE — the control would keep
-             its UA background and go opaque grey in dark mode. It has to be
-             bg-surface, which CONTROL already sets. This is the same trap the
-             public site documents. */
+          /* ⚠ `bg-none` clears background-IMAGE only — the control keeps its UA
+             background and goes opaque grey in dark mode. It needs bg-surface,
+             which CONTROL already sets. */
           className
         )}
         {...rest}
@@ -113,9 +112,8 @@ export function Select({ invalid, className, children, ...rest }) {
   );
 }
 
-/* A checkbox with its label as one click target. The native input is kept —
-   styling a real checkbox rather than replacing it means the keyboard, the
-   indeterminate state and form semantics all keep working for free. */
+/* Label and box as one click target. The native input is kept, so the
+   keyboard, the indeterminate state and form semantics keep working. */
 export function Checkbox({ checked, onChange, label, hint, disabled, className }) {
   return (
     <label
@@ -143,8 +141,7 @@ export function Checkbox({ checked, onChange, label, hint, disabled, className }
   );
 }
 
-/* A row of mutually exclusive options — used for draft/published, where a
-   dropdown would hide the current state behind a click. */
+/* For draft/published, where a dropdown hides the state behind a click. */
 export function SegmentedControl({ value, onChange, options, className }) {
   return (
     <div

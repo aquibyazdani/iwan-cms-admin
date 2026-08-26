@@ -24,10 +24,8 @@ export function Badge({ tone = "neutral", className, children }) {
   );
 }
 
-/* Draft vs published, in the one place that decides how each reads.
-   A draft is deliberately the LOUDER of the two: published is the resting state
-   of most rows, and an editor scanning a list needs the unpublished ones to
-   stand out, not the other way round. */
+/* A draft is deliberately the LOUDER of the two: published is the resting state
+   of most rows, so the unpublished ones are what need to stand out. */
 export function StatusBadge({ status }) {
   return status === "published" ? (
     <Badge tone="success">Published</Badge>
@@ -36,8 +34,8 @@ export function StatusBadge({ status }) {
   );
 }
 
-/* ⚠ An empty list means EVERYWHERE, not "unassigned". Rendering nothing there
-   would read as a half-filled form, so it gets its own badge. */
+/* ⚠ An empty list means EVERYWHERE, not "unassigned" — rendering nothing would
+   read as a half-filled form. */
 export function CountryBadges({ codes = [] }) {
   if (!codes || codes.length === 0) {
     return <Badge tone="accent">Everywhere</Badge>;
@@ -49,8 +47,7 @@ export function CountryBadges({ codes = [] }) {
         const country = COUNTRIES.find((c) => c.code === code);
         return (
           <Badge key={code}>
-            {/* Windows draws no flag glyph and falls back to the two letters,
-                which is why the label is always beside it. */}
+            {/* Windows falls back to the two letters — hence the label. */}
             <span aria-hidden="true">{country?.flag ?? "🏳"}</span>
             {country?.label ?? code.toUpperCase()}
           </Badge>

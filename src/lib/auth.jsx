@@ -16,18 +16,15 @@ import {
 
 const AuthContext = createContext(null);
 
-/* Who is signed in, and the two calls that change that.
-
-   The token lives in local or session storage — whichever the "remember me"
-   box chose, see writeToken — and the user is re-fetched from /api/auth/me on
-   every boot rather than being cached alongside it. That one request is what
-   makes a revoked or expired token fail at startup — landing on the sign-in
-   screen — instead of failing on whichever action the editor tried first. */
+/* Who is signed in, and the two calls that change that. The token lives in
+   local or session storage (whichever "remember me" chose) and the user is
+   re-fetched from /api/auth/me on every boot rather than cached alongside it —
+   which is what makes a stale token fail at startup rather than on whichever
+   action the editor tried first. */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  /* Distinct from "no user": on the very first render we do not yet KNOW, and
-     rendering the sign-in screen during that moment would flash it at someone
-     who is already signed in. */
+  /* Distinct from "no user" — on the first render we do not yet KNOW, and
+     rendering sign-in then flashes it at someone already signed in. */
   const [ready, setReady] = useState(false);
 
   const signOut = useCallback(() => {
@@ -35,9 +32,8 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
-  /* Any 401 from anywhere in the app ends the session, not just one from this
-     module — see setUnauthorizedHandler in api.js. Registered in an effect so
-     it is torn down with the provider. */
+  /* Any 401 anywhere ends the session — see setUnauthorizedHandler in api.js.
+     In an effect so it is torn down with the provider. */
   useEffect(() => {
     setUnauthorizedHandler(() => {
       writeToken(null);
@@ -60,8 +56,8 @@ export function AuthProvider({ children }) {
         if (!cancelled) setUser(data.user);
       })
       .catch(() => {
-        /* A bad token, or an API that is down. Either way there is no session;
-           the sign-in screen will report the real problem when it is used. */
+        /* A bad token or a dead API — either way there is no session, and the
+           sign-in screen reports the real problem when it is used. */
         if (!cancelled) writeToken(null);
       })
       .finally(() => {
@@ -74,13 +70,11 @@ export function AuthProvider({ children }) {
   }, []);
 
   /* `remember` decides how long the session outlives this visit — see
-     writeToken. It defaults to true so a caller that does not care (and every
-     call before the sign-in screen offered the choice) behaves as it always
-     did. */
+     writeToken. Defaults to true, which is how this behaved before the box
+     existed. */
   const signIn = useCallback(async (email, password, remember = true) => {
-    /* `auth: false` so a 401 here is "wrong password" and does not trip the
-       global session-expired handler — which would be a sign-out from the
-       sign-in screen. */
+    /* ⚠ `auth: false`, so a 401 here is "wrong password" and does not trip the
+       global session-expired handler — a sign-out from the sign-in screen. */
     const data = await api.post("/api/auth/login", { email, password }, { auth: false });
     writeRemember(remember);
     writeToken(data.token, remember);
@@ -96,9 +90,7 @@ export function AuthProvider({ children }) {
       signOut,
       setUser,
       isAdmin: user?.role === "admin",
-      /* The countries this account may write to. EMPTY means unscoped — every
-         country — which is the same convention the content documents use, and
-         what CountryPicker reads to decide what to disable. */
+      /* EMPTY means unscoped — every country — as everywhere else. */
       allowedCountries: user?.countries ?? [],
     }),
     [user, ready, signIn, signOut]

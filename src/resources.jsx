@@ -7,15 +7,10 @@ import {
 import { CountryBadges, StatusBadge, Badge } from "./ui/Badge.jsx";
 import { formatDay, formatLength, formatWhen, programmeLabel } from "./lib/format.js";
 
-/* Events, blogs, episodes and promos differ in their FIELDS and in nothing
-   else. They have the same identity (a unique slug), the same country list, the
-   same draft/published switch and the same six operations — which is exactly
-   what routes/crud.js says on the API side.
-
-   So there is one list screen and one form screen, and this file is what tells
-   them apart. A fifth content type is an entry here, not two more pages.
-
-   Field kinds are rendered by ResourceForm; the list columns render themselves. */
+/* Events, blogs, episodes and promos differ in their FIELDS and nothing else —
+   the same thing routes/crud.js says on the API side. So there is one list
+   screen and one form screen, and this file is what tells them apart: a fifth
+   content type is an entry here, not two more pages. */
 
 const statusColumn = {
   header: "Status",
@@ -29,9 +24,8 @@ const countriesColumn = {
   cell: (row) => <CountryBadges codes={row.countries} />,
 };
 
-/* ⚠ "Open to all" is a real value, not a blank — a post or event that belongs
-   to no single programme is open to the whole community, and rendering an empty
-   cell would read as a field someone forgot to fill in. */
+/* ⚠ "Open to all" is a real value, not a blank — an empty cell would read as a
+   field someone forgot to fill in. */
 const programmeColumn = {
   header: "Programme",
   width: "w-[150px]",
@@ -49,9 +43,8 @@ const updatedColumn = {
   cell: (row) => <span className="text-fg-muted">{formatWhen(row.updatedAt)}</span>,
 };
 
-/* The title cell every list opens with: the name, with the slug under it in
-   mono. The slug is what the public URL is made of, so an editor should be able
-   to see it without opening the row. */
+/* The slug is what the public URL is made of, so it is visible without
+   opening the row. */
 const titleCell = (title, slug) => (
   <div className="min-w-0">
     <p className="truncate font-medium text-fg">{title || "Untitled"}</p>
@@ -59,7 +52,7 @@ const titleCell = (title, slug) => (
   </div>
 );
 
-/* Fields shared by every type, in the order they appear in the form's sidebar. */
+/* Shared by every type, in sidebar order. */
 const publishingSection = {
   title: "Publishing",
   description:
@@ -77,14 +70,13 @@ export const RESOURCES = {
     label: "Events",
     singular: "Event",
     icon: IconCalendarEvent,
-    /* Turns on the programme dropdown in the list toolbar. Only the types that
-       actually carry a `programme` get it — a filter that can never match is
-       worse than no filter. */
+    /* Only for types that carry a `programme` — a filter that can never match
+       is worse than none. */
     hasProgramme: true,
     description:
       "Everything on /events and the homepage calendar. An event happens in one place, so most carry a single country.",
-    /* Newest is not the useful default here — an editor is almost always
-       working on something that has not happened yet. */
+    /* Newest is not useful here — an editor is working on what has not
+       happened yet. */
     emptyBody: "Add the first event and it appears on the site once published.",
     slugFrom: "title",
     titleOf: (row) => row.title,
@@ -240,8 +232,8 @@ export const RESOURCES = {
         width: "w-[130px]",
         cell: (row) => (
           <span className="whitespace-nowrap text-fg-muted">
-            {/* ⚠ Two posts genuinely have no date on the live site and none was
-                invented for them. "No date" is the honest cell, not today's. */}
+            {/* ⚠ Some posts genuinely have no date and none was invented.
+                "No date" is the honest cell, not today's. */}
             {row.date ? formatDay(row.date) : "No date"}
           </span>
         ),
@@ -381,10 +373,8 @@ export const RESOURCES = {
             label: "Running time",
             kind: "duration",
             width: "half",
-            /* ⚠ This is not decoration. The player loads with preload="none" so
-               it downloads nothing until someone presses play; without a stored
-               length the listing card would have to fetch megabytes of audio
-               just to print a duration. */
+            /* ⚠ The player is preload="none", so without a stored length a
+               card would fetch megabytes of audio to print a duration. */
             hint: "In seconds, or mm:ss. Needed so the card can show a running time without downloading the audio.",
           },
           {

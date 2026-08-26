@@ -1,11 +1,9 @@
 import { Link } from "react-router-dom";
 import { cx } from "../lib/cx.js";
 
-/* The only button. Five variants, three sizes, and the element follows the
-   props — `to` renders a <Link>, `href` an <a>, otherwise a real <button> with
-   an explicit type. Same contract as the public site's Button, for the same
-   reason: a component that decides its own element is a component a caller can
-   never use in the wrong place. */
+/* The only button. The element follows the props — `to` renders a <Link>,
+   `href` an <a>, otherwise a real <button> with an explicit type — so a caller
+   cannot use it in the wrong place. */
 
 const BASE = cx(
   "inline-flex select-none items-center justify-center gap-2 whitespace-nowrap",
@@ -13,13 +11,11 @@ const BASE = cx(
   "duration-150 disabled:pointer-events-none disabled:opacity-50"
 );
 
-/* ⚠ Every variant states its OWN border colour rather than inheriting one from
-   BASE. Tailwind emits utilities in its own order, not the order they are
-   written, so a shared `border-line` here would sometimes beat a variant's
-   override and sometimes not depending on where each lands in the sheet. The
-   public site's Button hit exactly this and solves it the same way. */
+/* ⚠ Every variant states its OWN border colour rather than inheriting from
+   BASE. Tailwind emits utilities in its own order, not the written one, so a
+   shared `border-line` would beat a variant's override unpredictably. */
 const VARIANTS = {
-  /* Vercel's filled black/white button: the single primary action on a screen. */
+  /* The single primary action on a screen. */
   primary: cx(
     "border border-fg bg-fg text-fg-invert",
     "hover:bg-fg/90 hover:border-fg/90"
@@ -38,8 +34,7 @@ const VARIANTS = {
     "border border-danger bg-danger text-white",
     "hover:bg-danger-hover hover:border-danger-hover"
   ),
-  /* A destructive action that is not the point of the screen — a Delete sitting
-     among ordinary controls should not shout before it is chosen. */
+  /* A Delete sitting among ordinary controls should not shout. */
   "danger-quiet": cx(
     "border border-line bg-surface text-danger",
     "hover:border-danger hover:bg-danger-soft"
@@ -50,7 +45,7 @@ const SIZES = {
   sm: "h-8 px-3 text-[13px]",
   md: "h-9 px-4 text-[14px]",
   lg: "h-11 px-5 text-[15px]",
-  /* A square button holding nothing but an icon. */
+  /* Icon only. */
   icon: "h-9 w-9 p-0",
 };
 
@@ -66,8 +61,7 @@ export function Button({
   children,
   ...rest
 }) {
-  /* `className` is appended last so a caller can resize or recolour without
-     fighting the variant. */
+  /* Last, so a caller can resize or recolour without fighting the variant. */
   const classes = cx(BASE, VARIANTS[variant], SIZES[size], className);
 
   if (to) {
@@ -97,8 +91,8 @@ export function Button({
       type={type}
       className={classes}
       disabled={disabled || loading}
-      /* The label does not change while saving — a button that says "Save" then
-         "Saving…" changes width mid-click and moves whatever is beside it. */
+      /* ⚠ The label does not change while saving: "Save" → "Saving…" changes
+         width mid-click and moves whatever is beside it. */
       aria-busy={loading || undefined}
       {...rest}
     >

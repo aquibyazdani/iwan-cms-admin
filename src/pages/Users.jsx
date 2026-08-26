@@ -14,9 +14,8 @@ import { Dialog, ConfirmDialog } from "../ui/Dialog.jsx";
 import { EmptyState, ErrorState, TableSkeleton, Alert } from "../ui/feedback.jsx";
 import { formatWhen } from "../lib/format.js";
 
-/* Admin-only. Kept a deliberately thin screen: create an account, scope it,
-   deactivate it, delete it. Anything more (password reset flows, invitations)
-   would need email, which this service does not have. */
+/* Admin-only, and deliberately thin: create an account, scope it, deactivate
+   it, delete it. Reset flows and invitations would need email. */
 export default function Users() {
   const { user: me } = useAuth();
   const toast = useToast();
@@ -253,9 +252,9 @@ function NewUserDialog({ open, onClose, onCreated }) {
             <Input
               {...props}
               type="text"
-              /* Deliberately not a password field: whoever is creating the
-                 account has to read this back to hand it over, and a masked
-                 box they cannot see is how a typo becomes a support request. */
+              /* ⚠ Deliberately not a password field — whoever creates the
+                 account has to read it back to hand it over, and a masked box
+                 is how a typo becomes a support request. */
               spellCheck={false}
               value={form.password}
               onChange={set("password")}

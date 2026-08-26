@@ -2,10 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* The only stylesheet in the project — everything else is Tailwind utilities in
-   the component that uses them, the same rule the public site keeps. What lives
-   here is what a utility class cannot express: page-level base rules, and the
-   two reset details Tailwind's preflight deliberately leaves alone. */
+/* The only stylesheet in the project — everything else is Tailwind utilities on
+   the component. What lives here is what a utility cannot express: page-level
+   base rules, and the reset details preflight leaves alone. */
 
 @layer base {
   html {
@@ -17,15 +16,13 @@
     @apply bg-canvas font-sans text-[14px] leading-[1.55] text-fg antialiased;
   }
 
-  /* One focus treatment for the whole app. Tailwind's preflight removes the UA
-     outline; without a replacement the tool is unusable from a keyboard, and
-     `:focus-visible` means a mouse click does not draw a ring. */
+  /* ⚠ One focus treatment for the whole app. Preflight removes the UA outline,
+     and without a replacement the tool is unusable from a keyboard. */
   :focus-visible {
     @apply outline-none ring-2 ring-accent/50 ring-offset-1 ring-offset-canvas;
   }
 
-  /* A date input's picker indicator is nearly invisible on a dark ground —
-     it is a UA-drawn glyph, so it has to be inverted rather than recoloured. */
+  /* A UA-drawn glyph, so it has to be inverted rather than recoloured. */
   [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
   [data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
     filter: invert(1) opacity(0.6);
@@ -38,16 +35,12 @@
   }
 }
 
-/* The rich-text editing surface.
+/* The rich-text editing surface. Hand-written against the design tokens rather
+   than @tailwindcss/typography, which would need a `dark:` variant wired to a
+   non-standard selector; the tokens already flip on their own.
 
-   Hand-written against the design tokens rather than pulled in from
-   @tailwindcss/typography: the tokens already flip under [data-theme="dark"],
-   so this is theme-aware for free, where the plugin would need a `dark:` variant
-   wired up to a non-standard dark-mode selector.
-
-   ⚠ These are the EDITOR's styles, not the site's. The public site renders the
-   same HTML with its own type scale — how a post looks here is only a fair
-   approximation of how it will look published. */
+   ⚠ The EDITOR's styles, not the site's — a fair approximation of a published
+   post, not a reproduction. */
 @layer components {
   .rich-text {
     @apply text-[15px] leading-[1.7] text-fg;
@@ -68,8 +61,7 @@
     @apply mt-5 text-[15px] font-semibold leading-[1.4] text-fg;
   }
 
-  /* The heading directly after another heading should not get the big top
-     margin — that gap is meant to separate a heading from the text above it. */
+  /* That gap separates a heading from text above it, not from a heading. */
   .rich-text h2 + h3,
   .rich-text h3 + h4 {
     @apply mt-3;
@@ -84,7 +76,7 @@
   .rich-text li {
     @apply mt-1.5;
   }
-  /* A nested list is part of its parent item, not a new block. */
+  /* Part of its parent item, not a new block. */
   .rich-text li > ul,
   .rich-text li > ol {
     @apply mt-1.5;
@@ -110,37 +102,27 @@
     @apply max-w-full rounded-lg border border-line;
   }
 
-  /* A selected image needs to look selected — without this, deleting one is a
-     guess. ProseMirror adds this class to the selected node. */
+  /* Without this, deleting an image is a guess. ProseMirror adds the class. */
   .rich-text img.ProseMirror-selectednode {
     @apply ring-2 ring-accent;
   }
 
-  /* The placeholder, which is a CSS ::before on the first empty paragraph
-     rather than real text — so it can never be saved as content. */
+  /* A ::before rather than real text, so it can never be saved as content. */
   .rich-text p.is-editor-empty:first-child::before {
     @apply pointer-events-none float-left h-0 text-fg-subtle;
     content: attr(data-placeholder);
   }
 }
 
-/* ── the post preview ─────────────────────────────────────────────────────
-   How a post will read on the public site.
+/* How a post will read on the public site.
 
-   ⚠ These rules are a PORT of `.prose-post` in the public site's
-   src/index.css, down to the pixel values, and the two have to be changed
-   together. A preview that has quietly drifted from the site is worse than no
-   preview: it teaches an editor to trust something that is lying to them.
+   ⚠ A PORT of `.prose-post` in the site's src/index.css, down to the pixel
+   values, and the two have to change together. A preview that has drifted is
+   worse than none: it teaches an editor to trust something that is lying.
 
-   ⚠ It is fixed to the site's DEFAULT theme and always light. The site has four
-   brand themes and a dark admin, and following the admin's theme here would
-   show an editor a page no visitor will ever see. The colours come from the
-   `site-*` tokens in tailwind.config.js for the same reason.
-
-   Honest about its limits: the real page has DM Sans, the full-width layout and
-   the programme-toned hero. This is the body copy at the right size, weight and
-   rhythm — enough to judge the writing, not a pixel-perfect mock.
-------------------------------------------------------------------------- */
+   ⚠ Fixed to the site's DEFAULT theme and always light — following the admin's
+   theme would show an editor a page no visitor will ever see. Enough to judge
+   the writing, not a pixel-perfect mock. */
 @layer components {
   .site-prose {
     @apply font-site text-[17px] leading-[29px] text-site-ink-2;
