@@ -7,7 +7,12 @@
     <meta name="description" content="Content management for iwan.community" />
     <!-- An internal tool: nothing here should ever appear in a search result. -->
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230a0a0a'/><text x='16' y='23' font-family='system-ui,sans-serif' font-size='18' font-weight='700' fill='white' text-anchor='middle'>i</text></svg>" />
+    <!-- Same icon set as the public site (iwan/public), so the CMS tab is
+         recognisably Iwan rather than a generic placeholder. -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <script>
       /* Applied before first paint so a dark-mode session never flashes white.
          Inline on purpose — a module import would run a frame too late. */
