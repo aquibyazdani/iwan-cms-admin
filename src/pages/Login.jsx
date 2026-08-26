@@ -88,7 +88,7 @@ export default function Login() {
                 /* ⚠ Dots, not the word "password" — a placeholder that reads
                    like a value is the one people try to type over or, worse,
                    mistake for a filled field. */
-                placeholder="••••••••••"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
