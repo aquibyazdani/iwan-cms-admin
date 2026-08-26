@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { IconDownload, IconInbox, IconSearch, IconTrash } from "@tabler/icons-react";
+import {
+  IconDownload,
+  IconInbox,
+  IconMailForward,
+  IconSearch,
+  IconTrash,
+} from "@tabler/icons-react";
 import { api, query, API_URL, readToken } from "../lib/api.js";
 import { useFetch } from "../lib/useFetch.js";
 import { useToast } from "../ui/Toast.jsx";
@@ -43,7 +49,24 @@ function answerText(answer) {
   return String(value);
 }
 
-function Detail({ row, onClose, onChanged }) {
+/* What is known about the confirmation email for one registration.
+
+   ⚠ Three states, not two. Null means NO RECORD, which is not the same as
+   "never sent": every registration taken before the send was recorded has no
+   stamp, and claiming those people were never written to would send an
+   organiser off to re-contact a whole event. */
+function sentSummary(row) {
+  if (!row.confirmationSentAt) {
+    return row.confirmationSentCount
+      ? "Sent, but not dated"
+      : "No record of a confirmation being sent";
+  }
+  const times =
+    row.confirmationSentCount > 1 ? ` · ${row.confirmationSentCount} times` : "";
+  return `Confirmation sent ${formatWhen(row.confirmationSentAt)}${times}`;
+}
+
+function Detail({ row, onClose, onChanged, onResend }) {
   const toast = useToast();
   const [note, setNote] = useState(row?.note ?? "");
   const [saving, setSaving] = useState(false);
@@ -128,6 +151,22 @@ function Detail({ row, onClose, onChanged }) {
             );
           })}
         </dl>
+
+        {/* The confirmation email, and the one button that sends it again.
+            Placed here rather than only in the table because this is the view
+            that shows the address it would go to. */}
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-canvas px-3.5 py-3">
+          <div className="min-w-0">
+            <p className="text-[13px] font-medium text-fg">{sentSummary(row)}</p>
+            <p className="mt-0.5 truncate text-[12px] text-fg-subtle">
+              {row.email || "This form never asked for an email address"}
+            </p>
+          </div>
+          <Button size="sm" onClick={() => onResend(row)} disabled={!row.email}>
+            <IconMailForward size={15} stroke={1.8} />
+            Resend
+          </Button>
+        </div>
 
         <label className="flex flex-col gap-1.5">
           <span className="text-[13px] font-medium text-fg">
@@ -228,6 +267,8 @@ export default function Registrations() {
 
   const [open, setOpen] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);
+  const [pendingResend, setPendingResend] = useState(null);
+  const [resending, setResending] = useState(false);
 
   const setParam = (name, value) => {
     const next = new URLSearchParams(params);
@@ -288,6 +329,29 @@ export default function Registrations() {
       events.reload();
     } catch (err) {
       toast.error(err.message);
+    }
+  };
+
+  /* ⚠ Confirmed first, every time, and deliberately not a one-click action.
+     Everything else on this screen moves a row about in a database and can be
+     put back; this one puts a message in a member of the public's inbox, where
+     nothing can be undone. The dialog names the recipient because the usual way
+     to mail the wrong person is to have opened the wrong row.
+
+     The row is re-read afterwards rather than patched in place, so the "sent"
+     line reflects what the server actually recorded. */
+  const resend = async () => {
+    setResending(true);
+    try {
+      await api.post(`/api/admin/registrations/${pendingResend.id}/resend`);
+      toast.success(`Confirmation sent to ${pendingResend.email}`);
+      setPendingResend(null);
+      setOpen(null);
+      reload();
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setResending(false);
     }
   };
 
@@ -488,7 +552,7 @@ export default function Registrations() {
                 ))}
                 <Th className="w-[130px]">Country</Th>
                 <Th className="w-[110px]">Signed up</Th>
-                <Th className="w-[52px] text-right">
+                <Th className="w-[88px] text-right">
                   <span className="sr-only">Actions</span>
                 </Th>
               </Thead>
@@ -553,6 +617,26 @@ export default function Registrations() {
                       </span>
                     </Td>
                     <Td className="text-right">
+                      {/* ⚠ Disabled with a REASON in the tooltip rather than
+                          hidden. A button that is simply absent on some rows
+                          reads as a bug; one that says why it cannot be used
+                          answers the question instead. */}
+                      <button
+                        type="button"
+                        onClick={() => setPendingResend(row)}
+                        disabled={!row.email || row.status === "cancelled"}
+                        title={
+                          !row.email
+                            ? "No email address was given"
+                            : row.status === "cancelled"
+                              ? "Cancelled — the confirmation says a place is booked"
+                              : sentSummary(row)
+                        }
+                        aria-label={`Resend the confirmation to ${row.name || "this person"}`}
+                        className="rounded p-1.5 text-fg-subtle transition-colors hover:bg-muted hover:text-fg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-subtle"
+                      >
+                        <IconMailForward size={15} stroke={1.8} />
+                      </button>
                       <button
                         type="button"
                         onClick={() => setPendingDelete(row)}
@@ -580,11 +664,25 @@ export default function Registrations() {
       <Detail
         row={open}
         onClose={() => setOpen(null)}
+        onResend={setPendingResend}
         onChanged={() => {
           reload();
           events.reload();
           setOpen(null);
         }}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingResend)}
+        onClose={() => setPendingResend(null)}
+        onConfirm={resend}
+        loading={resending}
+        title="Resend the confirmation?"
+        confirmLabel="Send it"
+        /* ⚠ Not `variant="danger"`. Sending cannot be undone, but it destroys
+           nothing, and a red button here would misdescribe the action. */
+        confirmVariant="primary"
+        body={`A fresh confirmation for “${pendingResend?.eventTitle || pendingResend?.eventSlug}” will be emailed to ${pendingResend?.email}. It carries the event's details as they stand now, so a corrected date or venue goes out with it.`}
       />
 
       <ConfirmDialog

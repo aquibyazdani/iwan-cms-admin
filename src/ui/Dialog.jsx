@@ -107,10 +107,15 @@ export function Dialog({ open, onClose, title, description, children, footer, wi
   );
 }
 
-/* The delete confirmation, which is the only place this app asks "are you
-   sure". `name` is echoed back so an editor can see WHICH row they are about to
-   remove — the most common way to delete the wrong thing is to have opened the
-   wrong row's menu. */
+/* Where this app asks "are you sure". `name` is echoed back so an editor can
+   see WHICH row they are about to act on — the most common way to do this to
+   the wrong thing is to have opened the wrong row's menu.
+
+   Deleting is the default because it was the first use, but it is not the only
+   one: `confirmVariant` exists for an action that is irreversible without being
+   destructive — resending a confirmation email puts something in a member of
+   the public's inbox and cannot be recalled, yet painting that button red would
+   tell an editor they are about to destroy something. */
 export function ConfirmDialog({
   open,
   onClose,
@@ -119,6 +124,7 @@ export function ConfirmDialog({
   name,
   body,
   confirmLabel = "Delete",
+  confirmVariant = "danger",
   loading = false,
 }) {
   return (
@@ -137,7 +143,12 @@ export function ConfirmDialog({
           <Button size="sm" onClick={onClose} disabled={loading}>
             Cancel
           </Button>
-          <Button size="sm" variant="danger" loading={loading} onClick={onConfirm}>
+          <Button
+            size="sm"
+            variant={confirmVariant}
+            loading={loading}
+            onClick={onConfirm}
+          >
             {confirmLabel}
           </Button>
         </>

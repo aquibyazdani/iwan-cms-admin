@@ -137,7 +137,13 @@ export default function Login() {
               type="checkbox"
               checked={remember}
               onChange={(e) => setRemember(e.target.checked)}
-              className="h-3.5 w-3.5 cursor-pointer accent-accent"
+              /* `accent-fg`, not the app's `accent` blue: this box sits
+                 directly above the black/white primary Sign in button, and on
+                 a screen whose only other colour is the wordmark, a lone blue
+                 tick reads as a stray. The brand navy and gold are NOT options
+                 here — tailwind.config.js keeps those behind the `site-`
+                 prefix precisely so the admin never dresses up as the site. */
+              className="h-3.5 w-3.5 cursor-pointer accent-fg"
             />
             Remember me
           </label>
