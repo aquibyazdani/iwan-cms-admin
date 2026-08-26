@@ -10,15 +10,23 @@ export const API_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:4000")
 );
 
 const TOKEN_KEY = "iwan-cms.token";
+/* The "remember me" answer itself, so the box comes back the way it was left.
+   Kept in localStorage even when the answer is "no" — it is a preference about
+   the next sign-in, not part of the session it describes. */
+const REMEMBER_KEY = "iwan-cms.remember";
 
 /* localStorage rather than a cookie: the API is on a different origin and takes
    its token from an Authorization header, which is what keeps it free of any
    CSRF surface. The trade is that a token is readable by script on this origin,
    so an XSS here is a session compromise — worth knowing, and the reason this
-   app renders no user-supplied HTML anywhere. */
+   app renders no user-supplied HTML anywhere.
+
+   WHICH of the two storages holds it is the "remember me" answer: localStorage
+   outlives a browser restart, sessionStorage dies with the tab. Both are read
+   because only one ever holds the token and the reader cannot know which. */
 export const readToken = () => {
   try {
-    return localStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY);
   } catch {
     /* Safari private browsing throws rather than returning null. The session
        simply will not survive a reload. */
@@ -26,12 +34,36 @@ export const readToken = () => {
   }
 };
 
-export const writeToken = (token) => {
+export const writeToken = (token, remember = true) => {
   try {
-    if (token) localStorage.setItem(TOKEN_KEY, token);
-    else localStorage.removeItem(TOKEN_KEY);
+    /* ⚠ Clear BOTH before writing. Otherwise signing in with the box unticked
+       would leave the previous localStorage copy untouched, and the session
+       would outlive the browser exactly as if it had been ticked — the one
+       failure this option exists to prevent. Clearing both is also what makes
+       writeToken(null) a complete sign-out. */
+    localStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
+    if (token) (remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, token);
   } catch {
     /* nothing to do — the session lives in memory for this tab only */
+  }
+};
+
+/* Defaults to true when nothing is stored, which is what this app did before
+   the checkbox existed: an editor who never touches it stays signed in. */
+export const readRemember = () => {
+  try {
+    return localStorage.getItem(REMEMBER_KEY) !== "0";
+  } catch {
+    return true;
+  }
+};
+
+export const writeRemember = (remember) => {
+  try {
+    localStorage.setItem(REMEMBER_KEY, remember ? "1" : "0");
+  } catch {
+    /* the box simply comes back at its default next time */
   }
 };
 

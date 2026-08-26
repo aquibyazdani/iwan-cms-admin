@@ -6,14 +6,21 @@ import {
   useMemo,
   useState,
 } from "react";
-import { api, readToken, setUnauthorizedHandler, writeToken } from "./api.js";
+import {
+  api,
+  readToken,
+  setUnauthorizedHandler,
+  writeRemember,
+  writeToken,
+} from "./api.js";
 
 const AuthContext = createContext(null);
 
 /* Who is signed in, and the two calls that change that.
 
-   The token lives in localStorage and the user is re-fetched from /api/auth/me
-   on every boot rather than being cached alongside it. That one request is what
+   The token lives in local or session storage — whichever the "remember me"
+   box chose, see writeToken — and the user is re-fetched from /api/auth/me on
+   every boot rather than being cached alongside it. That one request is what
    makes a revoked or expired token fail at startup — landing on the sign-in
    screen — instead of failing on whichever action the editor tried first. */
 export function AuthProvider({ children }) {
@@ -66,12 +73,17 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  const signIn = useCallback(async (email, password) => {
+  /* `remember` decides how long the session outlives this visit — see
+     writeToken. It defaults to true so a caller that does not care (and every
+     call before the sign-in screen offered the choice) behaves as it always
+     did. */
+  const signIn = useCallback(async (email, password, remember = true) => {
     /* `auth: false` so a 401 here is "wrong password" and does not trip the
        global session-expired handler — which would be a sign-out from the
        sign-in screen. */
     const data = await api.post("/api/auth/login", { email, password }, { auth: false });
-    writeToken(data.token);
+    writeRemember(remember);
+    writeToken(data.token, remember);
     setUser(data.user);
     return data.user;
   }, []);
