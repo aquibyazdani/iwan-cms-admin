@@ -277,6 +277,72 @@ function CtaField({ value, onChange, error }) {
   );
 }
 
+/* An episode plays one way, so this is a choice and a single URL rather than
+   two boxes an editor can fill both of — which is exactly what happened, with
+   the same mp3 pasted into each. The API refuses both being set; this makes it
+   unsayable.
+
+   Bound to `audio`, and it writes `video` too, which is why it takes `onPatch`
+   rather than the usual single-key `onChange`. */
+const MEDIA = [
+  { value: "audio", label: "Audio" },
+  { value: "video", label: "Video" },
+];
+
+const MEDIA_COPY = {
+  audio: { label: "Audio URL", hint: "A direct link to the mp3." },
+  video: { label: "Video URL", hint: "A YouTube link — watch, youtu.be or shorts." },
+};
+
+function MediaField({ field, form, error, onPatch }) {
+  /* Derived from the data rather than held as its own state, so an episode
+     loaded from the server opens on the kind it actually has. */
+  const kind = form.video ? "video" : "audio";
+  const url = (kind === "video" ? form.video : form.audio) ?? "";
+  const copy = MEDIA_COPY[kind];
+
+  /* ⚠ Reachable only for an episode saved before the API refused both. Said
+     out loud rather than silently dropping one on open — the stray URL is
+     cleared by the next thing the editor touches here. */
+  const both = Boolean(form.audio && form.video);
+
+  /* Always both keys: whichever is chosen gets the URL and the other is
+     cleared, so the two can never be set at once. */
+  const write = (next, value) =>
+    onPatch(next === "video" ? { video: value, audio: "" } : { audio: value, video: "" });
+
+  return (
+    <div className="flex flex-col gap-2.5">
+      <SegmentedControl
+        value={kind}
+        options={MEDIA}
+        /* Switching MOVES the URL rather than dropping it — the usual reason
+           to switch is having labelled it wrong, not wanting to retype it. */
+        onChange={(next) => write(next, url)}
+      />
+      {both && (
+        <p className="text-[12px] leading-[1.5] text-warn">
+          This episode has both an audio and a video URL. Pick one above, or edit the URL
+          below, and the other is cleared.
+        </p>
+      )}
+      <Field label={copy.label} hint={field.hint ?? copy.hint} error={error}>
+        {(props) => (
+          <Input
+            {...props}
+            type="url"
+            inputMode="url"
+            spellCheck={false}
+            value={url}
+            placeholder="https://"
+            onChange={(e) => write(kind, e.target.value)}
+          />
+        )}
+      </Field>
+    </div>
+  );
+}
+
 export function renderField({
   field,
   value,
@@ -286,6 +352,10 @@ export function renderField({
   isNew,
   meta,
   allowedCountries,
+  onPatch,
+  /* Only the rich text needs this — everything else is a real form control and
+     is already frozen by the <fieldset disabled> around it. */
+  editable = true,
 }) {
   const common = {
     label: field.label,
@@ -295,6 +365,9 @@ export function renderField({
   };
 
   switch (field.kind) {
+    case "media":
+      return <MediaField field={field} form={form} error={error} onPatch={onPatch} />;
+
     case "slug":
       return (
         <SlugField
@@ -469,7 +542,12 @@ export function renderField({
       return (
         <Field label={field.label} hint={field.hint} error={error}>
           {() => (
-            <RichText value={value ?? ""} onChange={onChange} invalid={Boolean(error)} />
+            <RichText
+              value={value ?? ""}
+              onChange={onChange}
+              invalid={Boolean(error)}
+              readOnly={!editable}
+            />
           )}
         </Field>
       );

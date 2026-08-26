@@ -90,8 +90,11 @@ function ToolbarButton({ onClick, active, disabled, label, icon: Icon }) {
 
 const Divider = () => <span aria-hidden="true" className="mx-1 h-5 w-px bg-line" />;
 
-export function RichText({ value, onChange, invalid }) {
+export function RichText({ value, onChange, invalid, readOnly = false }) {
   const editor = useEditor({
+    /* ⚠ A contenteditable is not a form control, so a <fieldset disabled>
+       around it does nothing — this is what freezes it. */
+    editable: !readOnly,
     extensions: EXTENSIONS,
     content: value ?? "",
     editorProps: {

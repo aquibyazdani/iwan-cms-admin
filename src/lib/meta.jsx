@@ -13,10 +13,10 @@ import { COUNTRY_CODES } from "./countries.js";
 const FALLBACK = {
   countries: COUNTRY_CODES,
   programmes: [
-    { path: "/iwan-men", label: "Iwan Men" },
-    { path: "/iwan-women", label: "Iwan Women" },
-    { path: "/iwan-youth", label: "Iwan Youth" },
-    { path: "/iwan-kids", label: "Iwan Kids" },
+    { path: "/iwan-men", label: "Iwan Men", color: "#234967" },
+    { path: "/iwan-women", label: "Iwan Women", color: "#ee5f9e" },
+    { path: "/iwan-youth", label: "Iwan Youth", color: "#3994b3" },
+    { path: "/iwan-kids", label: "Iwan Kids", color: "#3694db" },
   ],
   statuses: ["draft", "published"],
 };

@@ -4,6 +4,7 @@ import { IconPlus, IconSearch, IconPencil, IconTrash } from "@tabler/icons-react
 import { RESOURCES } from "../resources.jsx";
 import { api, query } from "../lib/api.js";
 import { useFetch } from "../lib/useFetch.js";
+import { useAuth } from "../lib/auth.jsx";
 import { useToast } from "../ui/Toast.jsx";
 import { COUNTRIES } from "../lib/countries.js";
 import { useMeta, NO_PROGRAMME } from "../lib/meta.jsx";
@@ -28,6 +29,7 @@ export default function ResourceList({ resourceKey }) {
 
   const [params, setParams] = useSearchParams();
   const toast = useToast();
+  const { canWrite } = useAuth();
   const meta = useMeta();
   const [pendingDelete, setPendingDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -104,10 +106,12 @@ export default function ResourceList({ resourceKey }) {
         }
         description={resource.description}
         actions={
-          <Button variant="primary" to={`/${resource.path}/new`}>
-            <IconPlus size={15} stroke={2} />
-            New {resource.singular.toLowerCase()}
-          </Button>
+          canWrite ? (
+            <Button variant="primary" to={`/${resource.path}/new`}>
+              <IconPlus size={15} stroke={2} />
+              New {resource.singular.toLowerCase()}
+            </Button>
+          ) : undefined
         }
       />
 
@@ -205,12 +209,12 @@ export default function ResourceList({ resourceKey }) {
                 <Button size="sm" onClick={() => setParams({}, { replace: true })}>
                   Clear filters
                 </Button>
-              ) : (
+              ) : canWrite ? (
                 <Button size="sm" variant="primary" to={`/${resource.path}/new`}>
                   <IconPlus size={14} stroke={2} />
                   New {resource.singular.toLowerCase()}
                 </Button>
-              )
+              ) : undefined
             }
           />
         ) : (
@@ -252,21 +256,26 @@ export default function ResourceList({ resourceKey }) {
                     ))}
                     <Td className="text-right">
                       <div className="flex items-center justify-end gap-1">
+                        {/* Still opens for a viewer; only the label changes. */}
                         <Link
                           to={`/${resource.path}/${row.id}`}
-                          aria-label={`Edit ${resource.titleOf(row) ?? "item"}`}
+                          aria-label={`${canWrite ? "Edit" : "View"} ${
+                            resource.titleOf(row) ?? "item"
+                          }`}
                           className="rounded p-1.5 text-fg-subtle transition-colors hover:bg-muted hover:text-fg"
                         >
                           <IconPencil size={15} stroke={1.8} />
                         </Link>
-                        <button
-                          type="button"
-                          onClick={() => setPendingDelete(row)}
-                          aria-label={`Delete ${resource.titleOf(row) ?? "item"}`}
-                          className="rounded p-1.5 text-fg-subtle transition-colors hover:bg-danger-soft hover:text-danger"
-                        >
-                          <IconTrash size={15} stroke={1.8} />
-                        </button>
+                        {canWrite && (
+                          <button
+                            type="button"
+                            onClick={() => setPendingDelete(row)}
+                            aria-label={`Delete ${resource.titleOf(row) ?? "item"}`}
+                            className="rounded p-1.5 text-fg-subtle transition-colors hover:bg-danger-soft hover:text-danger"
+                          >
+                            <IconTrash size={15} stroke={1.8} />
+                          </button>
+                        )}
                       </div>
                     </Td>
                   </Tr>

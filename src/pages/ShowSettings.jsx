@@ -3,6 +3,8 @@ import { api } from "../lib/api.js";
 import { useFetch } from "../lib/useFetch.js";
 import { useToast } from "../ui/Toast.jsx";
 import { Button } from "../ui/Button.jsx";
+import { useAuth } from "../lib/auth.jsx";
+import { ConfirmDialog } from "../ui/Dialog.jsx";
 import { Field, Input, Textarea } from "../ui/form.jsx";
 import { PageHeader, Panel, PanelBody, PanelHeader } from "../ui/Page.jsx";
 import { ErrorState, Loading } from "../ui/feedback.jsx";
@@ -12,10 +14,12 @@ import { ErrorState, Loading } from "../ui/feedback.jsx";
    the part that varies by country. */
 export default function ShowSettings() {
   const toast = useToast();
+  const { canWrite } = useAuth();
   const { data, error, loading } = useFetch("/api/admin/podcast/show");
 
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [confirmSave, setConfirmSave] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
@@ -23,8 +27,12 @@ export default function ShowSettings() {
       setForm({ title: data.title, description: data.description, cover: data.cover });
   }, [data]);
 
-  const save = async (e) => {
+  const submit = (e) => {
     e.preventDefault();
+    setConfirmSave(true);
+  };
+
+  const save = async () => {
     setSaving(true);
     setFieldErrors({});
     try {
@@ -36,6 +44,7 @@ export default function ShowSettings() {
       toast.error(err.message);
     } finally {
       setSaving(false);
+      setConfirmSave(false);
     }
   };
 
@@ -45,70 +54,84 @@ export default function ShowSettings() {
   const set = (name) => (event) => setForm({ ...form, [name]: event.target.value });
 
   return (
-    <form onSubmit={save}>
-      <PageHeader
-        title="Show settings"
-        description="The podcast's own title, blurb and artwork. Episodes are managed under Podcast."
-        actions={
-          <Button type="submit" variant="primary" loading={saving}>
-            Save
-          </Button>
-        }
-      />
+    <form onSubmit={submit}>
+      <fieldset disabled={!canWrite} className="contents">
+        <PageHeader
+          title="Show settings"
+          description="The podcast's own title, blurb and artwork. Episodes are managed under Podcast."
+          actions={
+            <Button type="submit" variant="primary" loading={saving} disabled={!canWrite}>
+              Save
+            </Button>
+          }
+        />
 
-      <Panel className="max-w-[720px]">
-        <PanelHeader title="The show" />
-        <PanelBody>
-          <div className="flex flex-col gap-5">
-            <Field label="Title" error={fieldErrors.title}>
-              {(props) => <Input {...props} value={form.title} onChange={set("title")} />}
-            </Field>
+        <Panel className="max-w-[720px]">
+          <PanelHeader title="The show" />
+          <PanelBody>
+            <div className="flex flex-col gap-5">
+              <Field label="Title" error={fieldErrors.title}>
+                {(props) => (
+                  <Input {...props} value={form.title} onChange={set("title")} />
+                )}
+              </Field>
 
-            <Field label="Description" error={fieldErrors.description}>
-              {(props) => (
-                <Textarea
-                  {...props}
-                  rows={4}
-                  value={form.description}
-                  onChange={set("description")}
-                />
-              )}
-            </Field>
+              <Field label="Description" error={fieldErrors.description}>
+                {(props) => (
+                  <Textarea
+                    {...props}
+                    rows={4}
+                    value={form.description}
+                    onChange={set("description")}
+                  />
+                )}
+              </Field>
 
-            <Field
-              label="Cover URL"
-              error={fieldErrors.cover}
-              hint="A full https:// URL. Episodes without their own artwork fall back to this."
-            >
-              {(props) => (
-                <Input
-                  {...props}
-                  type="url"
-                  spellCheck={false}
-                  value={form.cover}
-                  placeholder="https://"
-                  onChange={set("cover")}
-                />
-              )}
-            </Field>
+              <Field
+                label="Cover URL"
+                error={fieldErrors.cover}
+                hint="A full https:// URL. Episodes without their own artwork fall back to this."
+              >
+                {(props) => (
+                  <Input
+                    {...props}
+                    type="url"
+                    spellCheck={false}
+                    value={form.cover}
+                    placeholder="https://"
+                    onChange={set("cover")}
+                  />
+                )}
+              </Field>
 
-            {form.cover && (
-              /* `contain`, not `cover` — the artwork is a wide wordmark and a
+              {form.cover && (
+                /* `contain`, not `cover` — the artwork is a wide wordmark and a
                  square crop cuts it in half. */
-              <div className="grid aspect-[16/9] max-w-[280px] place-items-center overflow-hidden rounded-lg border border-line bg-muted px-6">
-                <img
-                  src={form.cover}
-                  alt=""
-                  className="max-h-[70%] w-full object-contain"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
-              </div>
-            )}
-          </div>
-        </PanelBody>
-      </Panel>
+                <div className="grid aspect-[16/9] max-w-[280px] place-items-center overflow-hidden rounded-lg border border-line bg-muted px-6">
+                  <img
+                    src={form.cover}
+                    alt=""
+                    className="max-h-[70%] w-full object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </PanelBody>
+        </Panel>
+        <ConfirmDialog
+          open={confirmSave}
+          onClose={() => setConfirmSave(false)}
+          onConfirm={save}
+          loading={saving}
+          title="Save show settings?"
+          confirmLabel="Save"
+          confirmVariant="primary"
+          body="The podcast's title, blurb and artwork appear on /podcast for every visitor."
+        />
+      </fieldset>
     </form>
   );
 }

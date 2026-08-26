@@ -10,6 +10,7 @@ import {
 import { api, query, API_URL, readToken } from "../lib/api.js";
 import { useFetch } from "../lib/useFetch.js";
 import { useToast } from "../ui/Toast.jsx";
+import { useAuth } from "../lib/auth.jsx";
 import { COUNTRIES } from "../lib/countries.js";
 import { formatWhen, formatDay } from "../lib/format.js";
 import { Button } from "../ui/Button.jsx";
@@ -64,6 +65,7 @@ function sentSummary(row) {
 
 function Detail({ row, onClose, onChanged, onResend }) {
   const toast = useToast();
+  const { canWrite } = useAuth();
   const [note, setNote] = useState(row?.note ?? "");
   const [saving, setSaving] = useState(false);
 
@@ -107,21 +109,28 @@ function Detail({ row, onClose, onChanged, onResend }) {
     >
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center gap-2">
-          {STATUSES.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setStatus(s)}
-              className={cx(
-                "rounded-full border px-3 py-1 text-[12px] font-medium capitalize transition-colors",
-                row.status === s
-                  ? "border-fg bg-fg text-fg-invert"
-                  : "border-line text-fg-muted hover:border-line-strong hover:text-fg"
-              )}
-            >
-              {s}
-            </button>
-          ))}
+          {/* Read-only gets a badge, not four buttons that refuse. */}
+          {canWrite ? (
+            STATUSES.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setStatus(s)}
+                className={cx(
+                  "rounded-full border px-3 py-1 text-[12px] font-medium capitalize transition-colors",
+                  row.status === s
+                    ? "border-fg bg-fg text-fg-invert"
+                    : "border-line text-fg-muted hover:border-line-strong hover:text-fg"
+                )}
+              >
+                {s}
+              </button>
+            ))
+          ) : (
+            <Badge tone={STATUS_TONE[row.status]}>
+              <span className="capitalize">{row.status}</span>
+            </Badge>
+          )}
         </div>
 
         {/* ⚠ The question as it was ASKED, not as the form reads today — the
@@ -156,7 +165,11 @@ function Detail({ row, onClose, onChanged, onResend }) {
               {row.email || "This form never asked for an email address"}
             </p>
           </div>
-          <Button size="sm" onClick={() => onResend(row)} disabled={!row.email}>
+          <Button
+            size="sm"
+            onClick={() => onResend(row)}
+            disabled={!row.email || !canWrite}
+          >
             <IconMailForward size={15} stroke={1.8} />
             Resend
           </Button>
@@ -169,12 +182,13 @@ function Detail({ row, onClose, onChanged, onResend }) {
           </span>
           <Textarea
             rows={3}
+            disabled={!canWrite}
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Called — bringing two children"
           />
           <div>
-            <Button size="sm" onClick={saveNote} loading={saving}>
+            <Button size="sm" onClick={saveNote} loading={saving} disabled={!canWrite}>
               Save note
             </Button>
           </div>
@@ -242,6 +256,7 @@ const writeStored = (event, keys) => {
 
 export default function Registrations() {
   const toast = useToast();
+  const { canWrite } = useAuth();
   const [params, setParams] = useSearchParams();
 
   const event = params.get("event") ?? "";
@@ -594,30 +609,35 @@ export default function Registrations() {
                       {/* ⚠ Disabled with a REASON in the tooltip rather than
                           hidden — a button absent on some rows reads as a
                           bug. */}
-                      <button
-                        type="button"
-                        onClick={() => setPendingResend(row)}
-                        disabled={!row.email || row.status === "cancelled"}
-                        title={
-                          !row.email
-                            ? "No email address was given"
-                            : row.status === "cancelled"
-                              ? "Cancelled — the confirmation says a place is booked"
-                              : sentSummary(row)
-                        }
-                        aria-label={`Resend the confirmation to ${row.name || "this person"}`}
-                        className="rounded p-1.5 text-fg-subtle transition-colors hover:bg-muted hover:text-fg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-subtle"
-                      >
-                        <IconMailForward size={15} stroke={1.8} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPendingDelete(row)}
-                        aria-label={`Delete the registration from ${row.name || "someone"}`}
-                        className="rounded p-1.5 text-fg-subtle transition-colors hover:bg-danger-soft hover:text-danger"
-                      >
-                        <IconTrash size={15} stroke={1.8} />
-                      </button>
+                      {/* Neither is a read: one mails somebody, one deletes. */}
+                      {canWrite && (
+                        <button
+                          type="button"
+                          onClick={() => setPendingResend(row)}
+                          disabled={!row.email || row.status === "cancelled"}
+                          title={
+                            !row.email
+                              ? "No email address was given"
+                              : row.status === "cancelled"
+                                ? "Cancelled — the confirmation says a place is booked"
+                                : sentSummary(row)
+                          }
+                          aria-label={`Resend the confirmation to ${row.name || "this person"}`}
+                          className="rounded p-1.5 text-fg-subtle transition-colors hover:bg-muted hover:text-fg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-subtle"
+                        >
+                          <IconMailForward size={15} stroke={1.8} />
+                        </button>
+                      )}
+                      {canWrite && (
+                        <button
+                          type="button"
+                          onClick={() => setPendingDelete(row)}
+                          aria-label={`Delete the registration from ${row.name || "someone"}`}
+                          className="rounded p-1.5 text-fg-subtle transition-colors hover:bg-danger-soft hover:text-danger"
+                        >
+                          <IconTrash size={15} stroke={1.8} />
+                        </button>
+                      )}
                     </Td>
                   </Tr>
                 ))}

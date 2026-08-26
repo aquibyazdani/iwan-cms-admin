@@ -1,17 +1,29 @@
+import { useId } from "react";
 import { COUNTRIES } from "../lib/countries.js";
-import { Checkbox, SegmentedControl } from "./form.jsx";
-import { cx } from "../lib/cx.js";
+import { Radio, SegmentedControl } from "./form.jsx";
 
 /* ⚠ The stored value is a list where EMPTY means everywhere — fine for a
    database, terrible as a set of unticked boxes: untick everything and the item
    goes to MORE places, which nobody guesses. So scope is an explicit two-way
    choice first, and countries appear only once "Specific" is picked.
 
+   ⚠ "Specific" is ONE country: with two countries, ticking both said exactly
+   what "Everywhere" says. Add a THIRD to lib/countries.js and this has to go
+   back to multi-select — `selected` below then shows nothing checked rather
+   than quietly picking one. The stored shape is unchanged, an array of one.
+
    `allowed` is the editor's own scope — a scoped editor cannot publish
    everywhere, so that option is disabled rather than failing at save. */
 export function CountryPicker({ value = [], onChange, allowed = null, error }) {
   const scoped = allowed && allowed.length > 0;
-  const isEverywhere = value.length === 0;
+  const group = useId();
+
+  /* Every country listed is the same reach as none, so an older document saved
+     with both reads as "Everywhere". Nothing is rewritten by showing it. */
+  const isEverywhere = value.length === 0 || value.length >= COUNTRIES.length;
+
+  /* Null unless exactly one is chosen — see the note about a third country. */
+  const selected = value.length === 1 ? value[0] : null;
 
   const options = [
     {
@@ -25,20 +37,16 @@ export function CountryPicker({ value = [], onChange, allowed = null, error }) {
     if (next === "everywhere") {
       if (scoped) return;
       onChange([]);
-    } else if (value.length === 0) {
-      /* ⚠ "Specific" with nothing chosen is still the empty list, which still
-         means everywhere while the UI claims otherwise. */
+    } else if (isEverywhere) {
+      /* ⚠ `isEverywhere`, not `value.length === 0` — an older document holding
+         every country would leave this branch dead. Something must be chosen
+         either way, or "Specific" still means everywhere. */
       onChange([scoped ? allowed[0] : COUNTRIES[0].code]);
     }
   };
 
-  const toggle = (code, on) => {
-    const next = on ? [...value, code] : value.filter((c) => c !== code);
-    /* Unticking the last would silently mean "everywhere", and there is
-       already an explicit control for that. */
-    if (next.length === 0) return;
-    onChange(next);
-  };
+  /* Always exactly one, so the empty list is unreachable from here. */
+  const select = (code) => onChange([code]);
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -56,20 +64,16 @@ export function CountryPicker({ value = [], onChange, allowed = null, error }) {
         </p>
       ) : (
         <>
-          <div
-            className={cx(
-              "grid gap-2",
-              COUNTRIES.length > 2 ? "sm:grid-cols-2" : "sm:grid-cols-2"
-            )}
-          >
+          <div className="grid gap-2 sm:grid-cols-2">
             {COUNTRIES.map((country) => {
               const permitted = !scoped || allowed.includes(country.code);
               return (
-                <Checkbox
+                <Radio
                   key={country.code}
-                  checked={value.includes(country.code)}
+                  name={group}
+                  checked={selected === country.code}
                   disabled={!permitted}
-                  onChange={(on) => toggle(country.code, on)}
+                  onChange={() => select(country.code)}
                   label={
                     <>
                       <span aria-hidden="true" className="mr-1.5">
@@ -84,7 +88,7 @@ export function CountryPicker({ value = [], onChange, allowed = null, error }) {
             })}
           </div>
           <p className="text-[12px] leading-[1.5] text-fg-subtle">
-            Shown only in the countries ticked above.
+            Shown only in the country selected above.
           </p>
         </>
       )}

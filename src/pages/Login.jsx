@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { IconEye, IconEyeOff } from "@tabler/icons-react";
 import { useAuth } from "../lib/auth.jsx";
 import { readRemember } from "../lib/api.js";
@@ -12,6 +13,7 @@ import { Alert } from "../ui/feedback.jsx";
 
 export default function Login() {
   const { signIn } = useAuth();
+  const navigate = useNavigate();
   const { theme } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,8 +30,10 @@ export default function Login() {
     setError(null);
     try {
       await signIn(email, password, remember);
-      /* No navigate() — App swaps this screen for the shell as soon as `user`
-         is set, and the router lands on whatever was asked for. */
+      /* ⚠ Home, not wherever the URL happened to point. Signing in usually
+         follows a session ending, and landing back on the half-filled form
+         that expired mid-edit is a worse start than the dashboard. */
+      navigate("/", { replace: true });
     } catch (err) {
       setError(err.message);
       setBusy(false);

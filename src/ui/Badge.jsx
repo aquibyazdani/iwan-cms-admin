@@ -1,5 +1,6 @@
 import { cx } from "../lib/cx.js";
 import { COUNTRIES } from "../lib/countries.js";
+import { programmeLabel as programmeLabelOf } from "../lib/format.js";
 
 const TONES = {
   neutral: "border-line bg-muted text-fg-muted",
@@ -20,6 +21,35 @@ export function Badge({ tone = "neutral", className, children }) {
       )}
     >
       {children}
+    </span>
+  );
+}
+
+/* A programme pill in the programme's OWN colour, which the API serves as a hex
+   (see PROGRAMMES in its routes/admin.js) because the admin's Tailwind knows
+   nothing about the site's four programme colours.
+
+   ⚠ Inline `style`, not a class: the value arrives at runtime, so there is no
+   class for Tailwind to have generated. Falls back to a plain badge while /meta
+   is still in flight or for a path it does not know. */
+export function ProgrammeBadge({ path, programmes = [], className }) {
+  const programme = programmes.find((p) => p.path === path);
+  const label = programme?.label ?? programmeLabelOf(path);
+
+  if (!programme?.color) {
+    return <Badge className={className}>{label}</Badge>;
+  }
+
+  return (
+    <span
+      style={{ backgroundColor: programme.color }}
+      className={cx(
+        "inline-flex items-center gap-1 rounded-full border border-transparent px-2 py-0.5",
+        "text-[11px] font-medium leading-[1.5] whitespace-nowrap text-white",
+        className
+      )}
+    >
+      {label}
     </span>
   );
 }

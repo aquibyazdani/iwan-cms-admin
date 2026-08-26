@@ -312,6 +312,11 @@ export function FormBuilder({ value = [], onChange, error }) {
   const fields = value ?? [];
   const taken = fields.map((f) => f.key);
 
+  const ids = useRef([]);
+  const nextId = useRef(0);
+  while (ids.current.length < fields.length) ids.current.push((nextId.current += 1));
+  if (ids.current.length > fields.length) ids.current.length = fields.length;
+
   /* Native HTML5 drag rather than a library — one vertical list is not worth
      30KB, and the arrows cover what drag does not. */
   const [dragIndex, setDragIndex] = useState(null);
@@ -320,20 +325,31 @@ export function FormBuilder({ value = [], onChange, error }) {
   const move = (from, delta) => {
     const to = from + delta;
     if (to < 0 || to >= fields.length) return;
-    const next = [...fields];
-    [next[from], next[to]] = [next[to], next[from]];
-    onChange(next);
+    const swap = (list) => {
+      const copy = [...list];
+      [copy[from], copy[to]] = [copy[to], copy[from]];
+      return copy;
+    };
+    ids.current = swap(ids.current);
+    onChange(swap(fields));
   };
 
   const moveTo = (from, to) => {
     if (from === to || to == null) return;
-    const next = [...fields];
-    const [row] = next.splice(from, 1);
-    next.splice(to, 0, row);
-    onChange(next);
+    const reorder = (list) => {
+      const copy = [...list];
+      const [row] = copy.splice(from, 1);
+      copy.splice(to, 0, row);
+      return copy;
+    };
+    ids.current = reorder(ids.current);
+    onChange(reorder(fields));
   };
 
-  const add = (type) => onChange([...fields, newField(type, taken)]);
+  const add = (type) => {
+    ids.current = [...ids.current, (nextId.current += 1)];
+    onChange([...fields, newField(type, taken)]);
+  };
 
   const duplicate = (i) => {
     const copy = {
@@ -341,12 +357,20 @@ export function FormBuilder({ value = [], onChange, error }) {
       key: uniqueKey(fields[i].key, taken),
       options: fields[i].options.map((o) => ({ ...o })),
     };
+    /* A new row, so a new id — two rows on one key is the bug this avoids. */
+    const nextIds = [...ids.current];
+    nextIds.splice(i + 1, 0, (nextId.current += 1));
+    ids.current = nextIds;
+
     const next = [...fields];
     next.splice(i + 1, 0, copy);
     onChange(next);
   };
 
-  const remove = (i) => onChange(fields.filter((_, j) => j !== i));
+  const remove = (i) => {
+    ids.current = ids.current.filter((_, j) => j !== i);
+    onChange(fields.filter((_, j) => j !== i));
+  };
 
   return (
     <div className="flex flex-col gap-3">
@@ -364,7 +388,7 @@ export function FormBuilder({ value = [], onChange, error }) {
         <div className="flex flex-col gap-2">
           {fields.map((field, i) => (
             <FieldRow
-              key={field.key}
+              key={ids.current[i]}
               field={field}
               index={i}
               total={fields.length}

@@ -90,6 +90,7 @@ export function AuthProvider({ children }) {
       signOut,
       setUser,
       isAdmin: user?.role === "admin",
+      canWrite: user?.role !== "viewer",
       /* EMPTY means unscoped — every country — as everywhere else. */
       allowedCountries: user?.countries ?? [],
     }),

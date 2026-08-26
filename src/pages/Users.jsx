@@ -14,6 +14,10 @@ import { Dialog, ConfirmDialog } from "../ui/Dialog.jsx";
 import { EmptyState, ErrorState, TableSkeleton, Alert } from "../ui/feedback.jsx";
 import { formatWhen } from "../lib/format.js";
 
+/* One place deciding how a role reads. */
+const ROLE_LABEL = { admin: "Admin", editor: "Editor", viewer: "Viewer" };
+const ROLE_TONE = { admin: "accent", editor: "neutral", viewer: "neutral" };
+
 /* Admin-only, and deliberately thin: create an account, scope it, deactivate
    it, delete it. Reset flows and invitations would need email. */
 export default function Users() {
@@ -94,8 +98,8 @@ export default function Users() {
                       <p className="text-[12px] text-fg-subtle">{row.email}</p>
                     </Td>
                     <Td>
-                      <Badge tone={row.role === "admin" ? "accent" : "neutral"}>
-                        {row.role === "admin" ? "Admin" : "Editor"}
+                      <Badge tone={ROLE_TONE[row.role] ?? "neutral"}>
+                        {ROLE_LABEL[row.role] ?? row.role}
                       </Badge>
                     </Td>
                     <Td>
@@ -266,16 +270,19 @@ function NewUserDialog({ open, onClose, onCreated }) {
         <Field label="Role" error={errors.role}>
           {(props) => (
             <Select {...props} value={form.role} onChange={set("role")}>
+              <option value="viewer">Viewer — read-only</option>
               <option value="editor">Editor — content only</option>
               <option value="admin">Admin — content and accounts</option>
             </Select>
           )}
         </Field>
 
-        {form.role === "editor" && (
+        {/* ⚠ For a viewer too: scope decides what an account can SEE, not only
+            what it may change. Only an admin ignores it. */}
+        {form.role !== "admin" && (
           <Field
             label="Country scope"
-            hint="Leave both unticked for an editor who can publish anywhere."
+            hint="Leave both unticked for an account that reaches every country."
           >
             {() => (
               <div className="grid gap-2 sm:grid-cols-2">

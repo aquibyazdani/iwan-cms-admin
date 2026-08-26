@@ -5,6 +5,8 @@ import {
   IconSettings,
   IconUsers,
   IconInbox,
+  IconAddressBook,
+  IconBriefcase,
   IconLogout,
   IconMenu2,
   IconX,
@@ -32,6 +34,19 @@ const NAV_ITEM = cx(
 
 const NAV_IDLE = "text-fg-muted hover:bg-muted hover:text-fg";
 const NAV_ACTIVE = "bg-muted text-fg";
+
+const roleLine = (user) => {
+  if (user?.role === "admin") return "Admin";
+
+  const label = user?.role === "viewer" ? "Viewer" : "Editor";
+  const where = user?.countries?.length
+    ? user.countries
+        .map((c) => COUNTRIES.find((x) => x.code === c)?.label ?? c)
+        .join(", ")
+    : "all countries";
+
+  return `${label} · ${where}`;
+};
 
 /* The frame every signed-in screen renders inside. */
 export default function Shell() {
@@ -91,6 +106,20 @@ export default function Shell() {
           <IconInbox size={16} stroke={1.8} />
           Event registrations
         </NavLink>
+        <NavLink
+          to="/audience"
+          className={({ isActive }) => cx(NAV_ITEM, isActive ? NAV_ACTIVE : NAV_IDLE)}
+        >
+          <IconAddressBook size={16} stroke={1.8} />
+          Audience
+        </NavLink>
+        <NavLink
+          to="/applications"
+          className={({ isActive }) => cx(NAV_ITEM, isActive ? NAV_ACTIVE : NAV_IDLE)}
+        >
+          <IconBriefcase size={16} stroke={1.8} />
+          Volunteer &amp; career
+        </NavLink>
       </div>
 
       {isAdmin && (
@@ -130,18 +159,7 @@ export default function Shell() {
           <p className="truncate text-[12.5px] font-medium text-fg">
             {user?.name || user?.email}
           </p>
-          <p className="truncate text-[11.5px] text-fg-subtle">
-            {user?.role === "admin"
-              ? "Admin"
-              : /* ⚠ An empty country list means EVERY country, not none — see
-                   the API's lib/countries.js. Printing nothing here would read
-                   as an account that had been set up wrong. */
-                user?.countries?.length
-                ? `Editor · ${user.countries
-                    .map((c) => COUNTRIES.find((x) => x.code === c)?.label ?? c)
-                    .join(", ")}`
-                : "Editor · all countries"}
-          </p>
+          <p className="truncate text-[11.5px] text-fg-subtle">{roleLine(user)}</p>
         </div>
         <button
           type="button"

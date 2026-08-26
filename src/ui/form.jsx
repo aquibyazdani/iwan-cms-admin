@@ -141,6 +141,36 @@ export function Checkbox({ checked, onChange, label, hint, disabled, className }
   );
 }
 
+/* The same card as Checkbox, for one-of rather than any-of. A real radio with
+   a shared `name`, so grouping and arrow keys come from the browser. */
+export function Radio({ checked, onChange, label, hint, disabled, name, className }) {
+  return (
+    <label
+      className={cx(
+        "flex cursor-pointer items-start gap-2.5 rounded border p-3 transition-colors duration-150",
+        checked
+          ? "border-accent bg-accent-soft"
+          : "border-line bg-surface hover:border-line-strong",
+        disabled && "cursor-not-allowed opacity-50",
+        className
+      )}
+    >
+      <input
+        type="radio"
+        name={name}
+        checked={checked}
+        disabled={disabled}
+        onChange={() => onChange(true)}
+        className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-accent"
+      />
+      <span className="min-w-0">
+        <span className="block text-[13px] font-medium text-fg">{label}</span>
+        {hint && <span className="block text-[12px] text-fg-subtle">{hint}</span>}
+      </span>
+    </label>
+  );
+}
+
 /* For draft/published, where a dropdown hides the state behind a click. */
 export function SegmentedControl({ value, onChange, options, className }) {
   return (

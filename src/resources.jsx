@@ -4,8 +4,9 @@ import {
   IconMicrophone,
   IconSpeakerphone,
 } from "@tabler/icons-react";
-import { CountryBadges, StatusBadge, Badge } from "./ui/Badge.jsx";
-import { formatDay, formatLength, formatWhen, programmeLabel } from "./lib/format.js";
+import { CountryBadges, StatusBadge, Badge, ProgrammeBadge } from "./ui/Badge.jsx";
+import { formatDay, formatLength, formatWhen } from "./lib/format.js";
+import { useMeta } from "./lib/meta.jsx";
 
 /* Events, blogs, episodes and promos differ in their FIELDS and nothing else —
    the same thing routes/crud.js says on the API side. So there is one list
@@ -24,6 +25,13 @@ const countriesColumn = {
   cell: (row) => <CountryBadges codes={row.countries} />,
 };
 
+/* A cell is rendered inside the table, so this may hold a hook — which is how
+   it reaches the colours /meta serves. */
+function ProgrammePill({ path }) {
+  const { programmes } = useMeta();
+  return <ProgrammeBadge path={path} programmes={programmes} />;
+}
+
 /* ⚠ "Open to all" is a real value, not a blank — an empty cell would read as a
    field someone forgot to fill in. */
 const programmeColumn = {
@@ -31,7 +39,7 @@ const programmeColumn = {
   width: "w-[150px]",
   cell: (row) =>
     row.programme ? (
-      <Badge>{programmeLabel(row.programme)}</Badge>
+      <ProgrammePill path={row.programme} />
     ) : (
       <span className="text-fg-subtle">Open to all</span>
     ),
@@ -304,6 +312,7 @@ export const RESOURCES = {
     label: "Podcast",
     singular: "Episode",
     icon: IconMicrophone,
+    hasProgramme: true,
     description:
       "Episodes on /podcast. The show's own title and artwork are in Settings.",
     emptyBody: "Add an episode and it appears on /podcast once published.",
@@ -321,6 +330,7 @@ export const RESOURCES = {
           </span>
         ),
       },
+      programmeColumn,
       countriesColumn,
       statusColumn,
       {
@@ -336,7 +346,9 @@ export const RESOURCES = {
       countries: [],
       status: "draft",
       author: "",
+      programme: null,
       audio: "",
+      video: "",
       length: null,
       cover: "",
       order: 0,
@@ -356,18 +368,14 @@ export const RESOURCES = {
             kind: "date",
             width: "half",
           },
+          { name: "programme", kind: "programme", width: "half" },
         ],
       },
       {
-        title: "Audio",
+        title: "Media",
         fields: [
-          {
-            name: "audio",
-            label: "Audio URL",
-            kind: "url",
-            required: true,
-            hint: "A direct link to the mp3 — the site's player points straight at it.",
-          },
+          /* One control for both keys — see MediaField. */
+          { name: "audio", kind: "media" },
           {
             name: "length",
             label: "Running time",
@@ -375,7 +383,7 @@ export const RESOURCES = {
             width: "half",
             /* ⚠ The player is preload="none", so without a stored length a
                card would fetch megabytes of audio to print a duration. */
-            hint: "In seconds, or mm:ss. Needed so the card can show a running time without downloading the audio.",
+            hint: "In seconds, or mm:ss. Needed so the card can show a running time without downloading the media.",
           },
           {
             name: "order",
@@ -386,7 +394,7 @@ export const RESOURCES = {
           },
           {
             name: "cover",
-            label: "Cover URL",
+            label: "Cover image URL",
             kind: "url",
             hint: "Optional — falls back to the show's artwork.",
           },

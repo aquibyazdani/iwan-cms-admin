@@ -11,6 +11,8 @@ import ResourceForm from "./pages/ResourceForm.jsx";
 import ShowSettings from "./pages/ShowSettings.jsx";
 import Users from "./pages/Users.jsx";
 import Registrations from "./pages/Registrations.jsx";
+import Audience from "./pages/Audience.jsx";
+import Applications from "./pages/Applications.jsx";
 import { RESOURCE_LIST } from "./resources.jsx";
 
 /* Routes generated from RESOURCE_LIST rather than written out, for the same
@@ -20,7 +22,7 @@ import { RESOURCE_LIST } from "./resources.jsx";
    be shorter and wrong — it would also match /users and /podcast-show and
    render a broken list for them. */
 function Signed() {
-  const { user, ready } = useAuth();
+  const { user, ready, isAdmin } = useAuth();
 
   /* ⚠ `ready` is not "no user" — on the first render the stored token is still
      being checked, and sign-in then flashes at someone already signed in. */
@@ -42,12 +44,18 @@ function Signed() {
 
           {/* The old path was in the nav for a while and may be bookmarked. */}
           <Route path="event-registrations" element={<Registrations />} />
+          <Route path="audience" element={<Audience />} />
+          <Route path="applications" element={<Applications />} />
           <Route
             path="registrations"
             element={<Navigate to="/event-registrations" replace />}
           />
           <Route path="podcast-show" element={<ShowSettings />} />
-          <Route path="users" element={<Users />} />
+
+          <Route
+            path="users"
+            element={isAdmin ? <Users /> : <Navigate to="/" replace />}
+          />
 
           {/* A mistyped URL, not a page — nothing useful to say, so home. */}
           <Route path="*" element={<Navigate to="/" replace />} />
