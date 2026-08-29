@@ -5,7 +5,6 @@ import { Repeater } from "../ui/Repeater.jsx";
 import { RichText } from "../ui/RichText.jsx";
 import { FormBuilder } from "./FormBuilder.jsx";
 import { slugify, isValidSlug } from "../lib/slug.js";
-import { cx } from "../lib/cx.js";
 
 /* One renderer per field kind, called by ResourceForm as it walks a resource's
    spec — which is why adding a content type is a config entry rather than a new
@@ -571,5 +570,3 @@ export function renderField({
       );
   }
 }
-
-export const fieldWidth = (field) => cx(widthClass(field.width));

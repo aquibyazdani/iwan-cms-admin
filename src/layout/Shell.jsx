@@ -7,6 +7,7 @@ import {
   IconInbox,
   IconAddressBook,
   IconBriefcase,
+  IconForms,
   IconLogout,
   IconMenu2,
   IconX,
@@ -86,6 +87,13 @@ export default function Shell() {
             {resource.label}
           </NavLink>
         ))}
+        <NavLink
+          to="/apply-forms"
+          className={({ isActive }) => cx(NAV_ITEM, isActive ? NAV_ACTIVE : NAV_IDLE)}
+        >
+          <IconForms size={16} stroke={1.8} />
+          Application forms
+        </NavLink>
         <NavLink
           to="/podcast-show"
           className={({ isActive }) => cx(NAV_ITEM, isActive ? NAV_ACTIVE : NAV_IDLE)}

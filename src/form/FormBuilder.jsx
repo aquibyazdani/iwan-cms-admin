@@ -308,7 +308,16 @@ function FieldRow({
   );
 }
 
-export function FormBuilder({ value = [], onChange, error }) {
+/* ⚠ The empty state is a PROP. This builder is shared by an event's
+   registration form and the volunteer/career forms, and "an event cannot be
+   published without one" is nonsense on the latter. */
+export function FormBuilder({
+  value = [],
+  onChange,
+  error,
+  emptyTitle = "No registration form yet",
+  emptyBody = "An event cannot be published without one. Add the questions people answer when they sign up.",
+}) {
   const fields = value ?? [];
   const taken = fields.map((f) => f.key);
 
@@ -378,10 +387,9 @@ export function FormBuilder({ value = [], onChange, error }) {
 
       {fields.length === 0 ? (
         <div className="rounded-lg border border-dashed border-line px-4 py-8 text-center">
-          <p className="text-[13.5px] font-medium text-fg">No registration form yet</p>
+          <p className="text-[13.5px] font-medium text-fg">{emptyTitle}</p>
           <p className="mx-auto mt-1 max-w-[46ch] text-[12.5px] text-fg-muted">
-            An event cannot be published without one. Add the questions people answer when
-            they sign up.
+            {emptyBody}
           </p>
         </div>
       ) : (

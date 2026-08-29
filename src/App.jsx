@@ -13,6 +13,8 @@ import Users from "./pages/Users.jsx";
 import Registrations from "./pages/Registrations.jsx";
 import Audience from "./pages/Audience.jsx";
 import Applications from "./pages/Applications.jsx";
+import ApplyForms from "./pages/ApplyForms.jsx";
+import ApplyFormEdit from "./pages/ApplyFormEdit.jsx";
 import { RESOURCE_LIST } from "./resources.jsx";
 
 /* Routes generated from RESOURCE_LIST rather than written out, for the same
@@ -46,6 +48,10 @@ function Signed() {
           <Route path="event-registrations" element={<Registrations />} />
           <Route path="audience" element={<Audience />} />
           <Route path="applications" element={<Applications />} />
+          <Route path="apply-forms">
+            <Route index element={<ApplyForms />} />
+            <Route path=":id" element={<ApplyFormEdit />} />
+          </Route>
           <Route
             path="registrations"
             element={<Navigate to="/event-registrations" replace />}
