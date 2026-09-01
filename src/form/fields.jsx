@@ -4,6 +4,7 @@ import { CountryPicker } from "../ui/CountryPicker.jsx";
 import { Repeater } from "../ui/Repeater.jsx";
 import { RichText } from "../ui/RichText.jsx";
 import { FormBuilder } from "./FormBuilder.jsx";
+import ImageField from "./ImageField.jsx";
 import { slugify, isValidSlug } from "../lib/slug.js";
 
 /* One renderer per field kind, called by ResourceForm as it walks a resource's
@@ -436,6 +437,22 @@ export function renderField({
               type="time"
               value={value ?? ""}
               onChange={(e) => onChange(e.target.value)}
+            />
+          )}
+        </Field>
+      );
+
+    case "image":
+      /* Same stored value as `url` — a string — with a way to make one. */
+      return (
+        <Field {...common}>
+          {() => (
+            /* No `editable` — every control in here is a real form control,
+               so the <fieldset disabled> around the form already freezes it. */
+            <ImageField
+              value={value}
+              onChange={onChange}
+              placeholder={field.placeholder}
             />
           )}
         </Field>

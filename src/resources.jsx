@@ -217,9 +217,9 @@ export const RESOURCES = {
         fields: [
           {
             name: "img",
-            label: "Image URL",
-            kind: "url",
-            hint: "A full https:// URL. File uploads are not wired up yet.",
+            label: "Image",
+            kind: "image",
+            hint: "Upload a file, or paste a full https:// URL.",
           },
         ],
       },
@@ -303,9 +303,9 @@ export const RESOURCES = {
         fields: [
           {
             name: "img",
-            label: "Image URL",
-            kind: "url",
-            hint: "A full https:// URL. A post with no photo falls back to its programme's mark.",
+            label: "Image",
+            kind: "image",
+            hint: "Upload a file, or paste a URL. A post with no photo falls back to its programme's mark.",
           },
         ],
       },
@@ -401,8 +401,8 @@ export const RESOURCES = {
           },
           {
             name: "cover",
-            label: "Cover image URL",
-            kind: "url",
+            label: "Cover image",
+            kind: "image",
             hint: "Optional — falls back to the show's artwork.",
           },
         ],

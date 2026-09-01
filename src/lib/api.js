@@ -142,6 +142,36 @@ export const query = (params = {}) => {
   return s ? `?${s}` : "";
 };
 
+/* ⚠ NOT through `request` — that sets content-type: application/json and
+   JSON.stringifies the body, and a multipart upload needs neither. The
+   browser must set its own content-type here, boundary and all. Errors are
+   raised as the same ApiError, so a caller reads err.message and
+   err.fieldErrors exactly as it does everywhere else. */
+export async function uploadImage(file, { signal } = {}) {
+  const body = new FormData();
+  body.append("file", file);
+
+  let res;
+  try {
+    res = await fetch(`${API_URL}/api/admin/uploads`, {
+      method: "POST",
+      signal,
+      headers: { authorization: `Bearer ${readToken()}` },
+      body,
+    });
+  } catch (err) {
+    if (err.name === "AbortError") throw err;
+    throw new ApiError(0, { error: `Cannot reach the API at ${API_URL}.` });
+  }
+
+  const payload = await res.json().catch(() => null);
+  if (!res.ok) {
+    if (res.status === 401) onUnauthorized();
+    throw new ApiError(res.status, payload);
+  }
+  return payload;
+}
+
 export const api = {
   get: (path, opts) => request("GET", path, opts),
   post: (path, body, opts) => request("POST", path, { ...opts, body }),
