@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Field, Input, Textarea, Select, SegmentedControl } from "../ui/form.jsx";
+import { Field, Input, Radio, Textarea, Select, SegmentedControl } from "../ui/form.jsx";
 import { CountryPicker } from "../ui/CountryPicker.jsx";
 import { Repeater } from "../ui/Repeater.jsx";
 import { RichText } from "../ui/RichText.jsx";
@@ -481,6 +481,30 @@ export function renderField({
                 </option>
               ))}
             </Select>
+          )}
+        </Field>
+      );
+
+    case "admission":
+      /* Radio cards, not the segmented pill — the two labels are full
+         sentences the site prints verbatim, and a pill truncates them. */
+      return (
+        <Field label={field.label ?? "Admission"} hint={field.hint} error={error}>
+          {() => (
+            <div className="grid gap-2 sm:grid-cols-2">
+              <Radio
+                name={field.name}
+                label="Free to attend · Everyone welcome"
+                checked={(value ?? "free") === "free"}
+                onChange={() => onChange("free")}
+              />
+              <Radio
+                name={field.name}
+                label="Ticket to attend · Everyone welcome"
+                checked={value === "ticket"}
+                onChange={() => onChange("ticket")}
+              />
+            </div>
           )}
         </Field>
       );

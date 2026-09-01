@@ -5,6 +5,7 @@ import {
   IconSettings,
   IconUsers,
   IconInbox,
+  IconMail,
   IconAddressBook,
   IconBriefcase,
   IconForms,
@@ -120,6 +121,13 @@ export default function Shell() {
         >
           <IconAddressBook size={16} stroke={1.8} />
           Audience
+        </NavLink>
+        <NavLink
+          to="/contact"
+          className={({ isActive }) => cx(NAV_ITEM, isActive ? NAV_ACTIVE : NAV_IDLE)}
+        >
+          <IconMail size={16} stroke={1.8} />
+          Contact
         </NavLink>
         <NavLink
           to="/applications"

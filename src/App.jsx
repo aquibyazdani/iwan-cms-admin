@@ -12,6 +12,7 @@ import ShowSettings from "./pages/ShowSettings.jsx";
 import Users from "./pages/Users.jsx";
 import Registrations from "./pages/Registrations.jsx";
 import Audience from "./pages/Audience.jsx";
+import ContactInbox from "./pages/Contact.jsx";
 import Applications from "./pages/Applications.jsx";
 import ApplyForms from "./pages/ApplyForms.jsx";
 import ApplyFormEdit from "./pages/ApplyFormEdit.jsx";
@@ -47,6 +48,7 @@ function Signed() {
           {/* The old path was in the nav for a while and may be bookmarked. */}
           <Route path="event-registrations" element={<Registrations />} />
           <Route path="audience" element={<Audience />} />
+          <Route path="contact" element={<ContactInbox />} />
           <Route path="applications" element={<Applications />} />
           <Route path="apply-forms">
             <Route index element={<ApplyForms />} />

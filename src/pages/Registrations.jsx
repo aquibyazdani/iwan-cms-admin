@@ -154,6 +154,18 @@ function Detail({ row, onClose, onChanged, onResend }) {
               </div>
             );
           })}
+          {/* The site-wide checkbox, beside the event's own questions. Absent
+              on rows that predate it — then it simply isn't listed. */}
+          {row.photoConsent != null && (
+            <div className="px-3.5 py-2.5">
+              <dt className="text-[11.5px] font-medium uppercase tracking-[0.05em] text-fg-subtle">
+                Photography consent
+              </dt>
+              <dd className="mt-0.5 text-[13.5px] text-fg">
+                {row.photoConsent ? "Agreed" : "Not agreed"}
+              </dd>
+            </div>
+          )}
         </dl>
 
         {/* Here as well as in the table, because this is the view that shows
@@ -533,6 +545,9 @@ export default function Registrations() {
                     repeat one title down the column the answers need. */}
                 {!event && <Th className="w-[200px]">Event</Th>}
                 <Th className="w-[120px]">Status</Th>
+                {/* Fixed, not one of the answer columns — photo consent rides
+                    beside the answers on every registration (see the API). */}
+                <Th className="w-[84px]">Photos</Th>
                 {/* One line each. A few of these push the table past the
                     window, which is what the wrapper's scroll is for. */}
                 {columns.map((c) => (
@@ -577,6 +592,17 @@ export default function Registrations() {
                       <Badge tone={STATUS_TONE[row.status]}>
                         <span className="capitalize">{row.status}</span>
                       </Badge>
+                    </Td>
+                    <Td>
+                      {/* ⚠ Null is "no record" (rows before the checkbox
+                          existed) — a dash, never "No". */}
+                      <span
+                        className={
+                          row.photoConsent == null ? "text-fg-subtle" : "text-fg"
+                        }
+                      >
+                        {row.photoConsent == null ? "—" : row.photoConsent ? "Yes" : "No"}
+                      </span>
                     </Td>
                     {columns.map((c) => {
                       const answer = (row.answers ?? []).find((a) => a.key === c.key);

@@ -116,6 +116,7 @@ export const RESOURCES = {
       coords: null,
       programme: null,
       spots: null,
+      admission: "free",
       img: "",
       summary: "",
       details: "",
@@ -178,6 +179,12 @@ export const RESOURCES = {
             kind: "number",
             width: "half",
             hint: "How many people can come. Leave blank if it is not limited.",
+          },
+          {
+            name: "admission",
+            label: "Admission",
+            kind: "admission",
+            hint: "What the register panel says entry costs. Neither option takes payment here.",
           },
           {
             name: "address",

@@ -28,9 +28,11 @@ const SOURCES = [
   { value: "career", label: "Career" },
 ];
 
-const SOURCE_LABEL = Object.fromEntries(SOURCES.map((s) => [s.value, s.label]));
+export const SOURCE_LABEL = Object.fromEntries(SOURCES.map((s) => [s.value, s.label]));
 
-function Detail({ row, onClose, onChanged }) {
+/* Exported for the Contact page, which lists the same people narrowed to the
+   contact form — one dialog, so the two views cannot drift. */
+export function AudienceDetail({ row, onClose, onChanged }) {
   const toast = useToast();
   const { canWrite } = useAuth();
   const [note, setNote] = useState(row?.note ?? "");
@@ -442,7 +444,7 @@ export default function Audience() {
         )}
       </Panel>
 
-      <Detail
+      <AudienceDetail
         row={open}
         onClose={() => setOpen(null)}
         onChanged={() => {
