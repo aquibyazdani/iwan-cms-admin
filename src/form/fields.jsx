@@ -5,6 +5,7 @@ import { Repeater } from "../ui/Repeater.jsx";
 import { RichText } from "../ui/RichText.jsx";
 import { FormBuilder } from "./FormBuilder.jsx";
 import ImageField from "./ImageField.jsx";
+import AddressField from "./AddressField.jsx";
 import { slugify, isValidSlug } from "../lib/slug.js";
 
 /* One renderer per field kind, called by ResourceForm as it walks a resource's
@@ -127,43 +128,6 @@ function DurationField({ field, value, onChange, error }) {
           onBlur={() => setText(asText(parse(text)))}
           className="font-mono"
         />
-      )}
-    </Field>
-  );
-}
-
-function CoordsField({ field, value, onChange, error }) {
-  const [lat, lng] = value ?? ["", ""];
-
-  const set = (index, raw) => {
-    const next = [...(value ?? ["", ""])];
-    next[index] = raw === "" ? "" : Number(raw);
-
-    /* Both blank is null, not [NaN, NaN] — the site then searches the address
-       text instead. */
-    if (next[0] === "" && next[1] === "") return onChange(null);
-    onChange(next);
-  };
-
-  return (
-    <Field label={field.label} hint={field.hint} error={error}>
-      {() => (
-        <div className="grid grid-cols-2 gap-2">
-          <Input
-            value={lat === "" || lat === undefined ? "" : lat}
-            onChange={(e) => set(0, e.target.value)}
-            placeholder="Latitude"
-            inputMode="decimal"
-            aria-label="Latitude"
-          />
-          <Input
-            value={lng === "" || lng === undefined ? "" : lng}
-            onChange={(e) => set(1, e.target.value)}
-            placeholder="Longitude"
-            inputMode="decimal"
-            aria-label="Longitude"
-          />
-        </div>
       )}
     </Field>
   );
@@ -560,10 +524,10 @@ export function renderField({
         <DurationField field={field} value={value} onChange={onChange} error={error} />
       );
 
-    case "coords":
-      return (
-        <CoordsField field={field} value={value} onChange={onChange} error={error} />
-      );
+    case "address":
+      /* Writes `address` AND `coords`, so it takes onPatch — same reason as
+         MediaField above. */
+      return <AddressField field={field} form={form} error={error} onPatch={onPatch} />;
 
     case "agenda":
       return <AgendaField value={value} onChange={onChange} error={error} />;

@@ -187,16 +187,13 @@ export const RESOURCES = {
             hint: "What the register panel says entry costs. Neither option takes payment here.",
           },
           {
+            /* ⚠ Also writes `coords` — see AddressField. The separate
+               coordinates field is gone: picking a result fills them, and
+               nobody should be typing a latitude by hand. */
             name: "address",
             label: "Address",
-            kind: "text",
-            hint: "Used for the map when there are no coordinates.",
-          },
-          {
-            name: "coords",
-            kind: "coords",
-            label: "Coordinates",
-            hint: "Optional. With these the map pins the exact spot instead of searching for the address.",
+            kind: "address",
+            hint: "Search for the venue, or type the address. Picking a result also drops the map pin.",
           },
         ],
       },
