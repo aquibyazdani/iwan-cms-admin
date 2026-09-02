@@ -51,9 +51,7 @@ export default function Login() {
             className="h-14 w-auto object-contain"
           />
           <div>
-            <h1 className="text-[15px] font-semibold leading-tight text-fg">
-              Content management
-            </h1>
+            <h1 className="text-[15px] font-semibold leading-tight text-fg">ADMIN</h1>
             <p className="text-[12.5px] text-fg-subtle">Sign in to edit iwan.community</p>
           </div>
         </div>

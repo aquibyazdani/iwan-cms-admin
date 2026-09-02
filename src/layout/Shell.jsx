@@ -234,7 +234,7 @@ export default function Shell() {
           >
             <IconMenu2 size={18} stroke={1.8} />
           </button>
-          <span className="text-[14px] font-semibold text-fg">Iwan CMS</span>
+          <span className="text-[14px] font-semibold text-fg">Iwan Admin</span>
         </header>
 
         <main className="mx-auto w-full max-w-[1180px] px-4 py-6 sm:px-6 sm:py-8">
@@ -262,7 +262,7 @@ function Brand({ theme, onClose }) {
       {/* ⚠ The wordmark says "iwan.community", which is the SITE. This label is
           what stops someone believing they are looking at it. */}
       <span className="flex-1 text-[14px] font-bold uppercase tracking-[0.14em] text-fg-subtle">
-        CMS
+        ADMIN
       </span>
       {onClose && (
         <button
