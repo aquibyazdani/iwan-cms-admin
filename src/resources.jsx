@@ -427,16 +427,33 @@ export const RESOURCES = {
       },
       {
         header: "Window",
-        width: "w-[180px]",
-        cell: (row) => (
-          <span className="whitespace-nowrap text-fg-muted">
-            {row.startsAt || row.endsAt
-              ? `${row.startsAt ? formatDay(row.startsAt) : "Now"} → ${
-                  row.endsAt ? formatDay(row.endsAt) : "Open"
-                }`
-              : "Always"}
-          </span>
-        ),
+        width: "w-[210px]",
+        /* ⚠ The window is why a promo that says "Published" can still be
+           invisible on the site — an ended one is filtered out by the API and
+           the green badge alone reads as live. Twice now that has been
+           reported as a bug, so the state is spelt out here. */
+        cell: (row) => {
+          const today = new Date().toISOString().slice(0, 10);
+          const state =
+            row.endsAt && row.endsAt < today
+              ? { label: "Ended", tone: "danger" }
+              : row.startsAt && row.startsAt > today
+                ? { label: "Scheduled", tone: "warn" }
+                : null;
+
+          return (
+            <span className="flex flex-wrap items-center gap-1.5">
+              <span className="whitespace-nowrap text-fg-muted">
+                {row.startsAt || row.endsAt
+                  ? `${row.startsAt ? formatDay(row.startsAt) : "Now"} → ${
+                      row.endsAt ? formatDay(row.endsAt) : "Open"
+                    }`
+                  : "Always"}
+              </span>
+              {state && <Badge tone={state.tone}>{state.label}</Badge>}
+            </span>
+          );
+        },
       },
       countriesColumn,
       statusColumn,
