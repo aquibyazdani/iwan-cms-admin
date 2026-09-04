@@ -507,7 +507,7 @@ export default function Registrations() {
             )}
             <span className="text-fg-muted">
               {current.taken} signed up
-              {current.spots ? ` of ${current.spots} places` : ""}
+              {current.spots ? ` of ${current.spots} spots` : ""}
               {current.spots && current.taken >= current.spots && (
                 <span className="ml-2 font-medium text-danger">Full</span>
               )}
@@ -645,7 +645,7 @@ export default function Registrations() {
                             !row.email
                               ? "No email address was given"
                               : row.status === "cancelled"
-                                ? "Cancelled — the confirmation says a place is booked"
+                                ? "Cancelled — the confirmation says a spot is booked"
                                 : sentSummary(row)
                           }
                           aria-label={`Resend the confirmation to ${row.name || "this person"}`}

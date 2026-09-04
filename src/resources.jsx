@@ -175,7 +175,7 @@ export const RESOURCES = {
           { name: "venue", label: "Venue", kind: "text", width: "half" },
           {
             name: "spots",
-            label: "Places",
+            label: "Spots",
             kind: "number",
             width: "half",
             hint: "How many people can come. Leave blank if it is not limited.",
